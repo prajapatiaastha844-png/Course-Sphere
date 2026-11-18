@@ -110,10 +110,13 @@ def dashboard(request):
         if profile is not None:
             role = role_name
             break
+    context = {"profile": profile, "role": role}
+    if isinstance(profile, Instructor):
+        context["courses"] = profile.courses.all()
     return render(
         request,
         "accounts/dashboard.html",
-        {"profile": profile, "role": role},
+        context,
     )
 
 

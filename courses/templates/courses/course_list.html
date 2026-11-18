@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Courses | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        body {
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem max(1.25rem, calc((100% - 1100px) / 2));
+            background: #fff;
+            border-bottom: 1px solid #e3e9f2;
+        }
+        header a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 1.25rem;
+        }
+        .intro {
+            margin-bottom: 2rem;
+        }
+        .intro p {
+            color: #607087;
+            margin-bottom: 0;
+        }
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.25rem;
+        }
+        .course-card {
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            background: #fff;
+            border: 1px solid #e3e9f2;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgb(23 32 51 / 5%);
+        }
+        .category {
+            color: #2457c5;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .course-card h2 {
+            margin: 0.65rem 0;
+            font-size: 1.2rem;
+        }
+        .description {
+            color: #607087;
+            line-height: 1.55;
+        }
+        .details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            color: #607087;
+            font-size: 0.9rem;
+        }
+        .price {
+            color: #172033;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .empty-state {
+            padding: 2rem;
+            background: #fff;
+            border: 1px dashed #b9c5d6;
+            border-radius: 12px;
+            color: #607087;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>CourseSphere</strong>
+        <a href="{% url 'accounts:dashboard' %}">My account</a>
+    </header>
+    <main>
+        <section class="intro">
+            <h1>Explore courses</h1>
+            <p>Find a course to help you learn something new.</p>
+        </section>
+
+        {% if courses %}
+            <section class="course-grid" aria-label="Available courses">
+                {% for course in courses %}
+                    <article class="course-card">
+                        <span class="category">{{ course.category }}</span>
+                        <h2>{{ course.title }}</h2>
+                        <p class="description">{{ course.description }}</p>
+                        <div class="details">
+                            <span>{{ course.get_level_display }}</span>
+                            <span>
+                                {% if course.instructor %}
+                                    {{ course.instructor.name }}
+                                {% else %}
+                                    Instructor to be announced
+                                {% endif %}
+                            </span>
+                            <span class="price">Price: {{ course.price|floatformat:2 }}</span>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <p class="empty-state">There are no published courses yet. Please check back soon.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

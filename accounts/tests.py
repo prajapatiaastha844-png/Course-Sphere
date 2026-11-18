@@ -8,6 +8,8 @@ from django.test import override_settings
 from django.utils import timezone
 from django.urls import reverse
 
+from courses.models import Course
+
 from .models import Admin, Instructor, PasswordResetOTP, Student
 
 
@@ -89,6 +91,28 @@ class AccountRegistrationTests(TestCase):
 
 
 class AccountAuthenticationTests(TestCase):
+    def test_home_redirects_to_dashboard(self):
+        response = self.client.get("/")
+
+        self.assertRedirects(
+            response,
+            reverse("accounts:dashboard"),
+            fetch_redirect_response=False,
+        )
+
+    def test_login_form_preserves_the_requested_destination(self):
+        destination = reverse("courses:course_list")
+
+        response = self.client.get(
+            reverse("accounts:login"),
+            {"next": destination},
+        )
+
+        self.assertContains(
+            response,
+            f'name="next" value="{destination}"',
+        )
+
     def test_login_with_email_and_post_logout(self):
         get_user_model().objects.create_user(
             username="legacy-learner",
@@ -112,6 +136,56 @@ class AccountAuthenticationTests(TestCase):
         response = self.client.post(reverse("accounts:logout"))
         self.assertRedirects(response, reverse("accounts:login"))
         self.assertNotIn("_auth_user_id", self.client.session)
+
+
+class DashboardViewTests(TestCase):
+    def test_student_dashboard_shows_course_catalog_and_profile(self):
+        user = get_user_model().objects.create_user(
+            username="student@example.com",
+            password="StrongPassword-2026!",
+        )
+        Student.objects.create(
+            user=user,
+            name="Student Example",
+            email="student@example.com",
+            student_id="ST-100",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("accounts:dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Student dashboard")
+        self.assertContains(response, "Explore courses")
+        self.assertContains(response, "ST-100")
+
+    def test_instructor_dashboard_lists_assigned_courses(self):
+        user = get_user_model().objects.create_user(
+            username="instructor@example.com",
+            password="StrongPassword-2026!",
+        )
+        instructor = Instructor.objects.create(
+            user=user,
+            name="Instructor Example",
+            email="instructor@example.com",
+            employee_id="IN-100",
+            specialization="Mathematics",
+        )
+        Course.objects.create(
+            title="Algebra Basics",
+            category="Mathematics",
+            price="15.00",
+            description="An introduction to algebra.",
+            instructor=instructor,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("accounts:dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Instructor dashboard")
+        self.assertContains(response, "IN-100")
+        self.assertContains(response, "Algebra Basics")
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")

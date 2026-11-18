@@ -2,20 +2,254 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Log in</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Log in | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 12% 18%, #dce8ff 0, transparent 26rem),
+                #f4f7fb;
+        }
+        .site-header {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: #172033;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .brand-mark {
+            display: grid;
+            width: 2.4rem;
+            height: 2.4rem;
+            place-items: center;
+            border-radius: 0.75rem;
+            background: #2457c5;
+            color: #fff;
+            font-size: 0.85rem;
+            letter-spacing: 0;
+        }
+        .login-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+            align-items: center;
+            gap: clamp(2rem, 7vw, 6rem);
+            width: min(100% - 2.5rem, 1040px);
+            min-height: calc(100vh - 5.5rem);
+            margin: 0 auto;
+            padding: 1rem 0 4rem;
+        }
+        .welcome {
+            max-width: 470px;
+        }
+        .eyebrow {
+            color: #2457c5;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .welcome h1 {
+            margin: 0.9rem 0 1rem;
+            font-size: clamp(2.4rem, 5vw, 4rem);
+            letter-spacing: -0.055em;
+            line-height: 1.08;
+        }
+        .login-card {
+            padding: clamp(1.5rem, 4vw, 2.5rem);
+            border: 1px solid #e3e9f2;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 24px 70px rgb(23 32 51 / 10%);
+        }
+        .login-card h2 {
+            margin: 0;
+            font-size: 1.75rem;
+            letter-spacing: -0.035em;
+        }
+        .card-copy {
+            margin: 0.55rem 0 1.7rem;
+            color: #607087;
+            line-height: 1.5;
+        }
+        .login-form p {
+            margin: 0 0 1.15rem;
+        }
+        .login-form label {
+            display: block;
+            margin-bottom: 0.45rem;
+            color: #33425a;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+        .login-form input[type="text"],
+        .login-form input[type="email"],
+        .login-form input[type="password"] {
+            width: 100%;
+            min-height: 2.9rem;
+            padding: 0.7rem 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.6rem;
+            background: #fff;
+            color: #172033;
+            font: inherit;
+        }
+        .login-form input:focus {
+            border-color: #2457c5;
+            outline: 3px solid rgb(36 87 197 / 15%);
+        }
+        .login-form .helptext {
+            display: block;
+            margin-top: 0.4rem;
+            color: #607087;
+            font-size: 0.85rem;
+        }
+        .errorlist {
+            margin: 0.4rem 0 0;
+            padding-left: 1.2rem;
+            color: #b42318;
+            font-size: 0.9rem;
+        }
+        .messages {
+            margin: 0 0 1rem;
+            padding: 0;
+            color: #17663a;
+            list-style: none;
+        }
+        .messages li {
+            padding: 0.75rem 0.85rem;
+            border: 1px solid #b7e4c7;
+            border-radius: 0.6rem;
+            background: #effaf2;
+        }
+        .form-options {
+            display: flex;
+            justify-content: flex-end;
+            margin: -0.25rem 0 1.25rem;
+            font-size: 0.9rem;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .submit-button {
+            width: 100%;
+            min-height: 3rem;
+            border: 0;
+            border-radius: 0.65rem;
+            background: #2457c5;
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            transition: background 150ms ease, transform 150ms ease;
+        }
+        .submit-button:hover {
+            transform: translateY(-1px);
+            background: #1d46a2;
+        }
+        .register-links {
+            margin: 1.5rem 0 0;
+            padding-top: 1.25rem;
+            border-top: 1px solid #e8edf4;
+            color: #607087;
+            font-size: 0.92rem;
+            line-height: 1.8;
+            text-align: center;
+        }
+        .register-links p {
+            margin: 0.25rem 0;
+        }
+        @media (max-width: 760px) {
+            .login-layout {
+                grid-template-columns: 1fr;
+                gap: 1.75rem;
+                max-width: 480px;
+                min-height: auto;
+                padding-top: 1rem;
+            }
+            .welcome {
+                text-align: center;
+            }
+            .welcome h1 {
+                font-size: 2.5rem;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Log in</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Log in</button>
-    </form>
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-    <p><a href="{% url 'accounts:forgot_password' %}">Forgot your password?</a></p>
-    <p><a href="{% url 'accounts:register' role='student' %}">Register as a student</a></p>
-    <p><a href="{% url 'accounts:register' role='instructor' %}">Register as an instructor</a></p>
+    <header class="site-header">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">CS</span>
+            <span>CourseSphere</span>
+        </div>
+    </header>
+
+    <main class="login-layout">
+        <section class="welcome" aria-labelledby="welcome-heading">
+            <span class="eyebrow">Learn something new</span>
+            <h1 id="welcome-heading">Your next chapter starts here.</h1>
+        </section>
+
+        <section class="login-card" aria-labelledby="login-heading">
+            <h2 id="login-heading">Welcome back</h2>
+            <p class="card-copy">Log in to your CourseSphere account.</p>
+
+            {% if messages %}
+                <ul class="messages" role="status">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form class="login-form" method="post">
+                {% csrf_token %}
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+                {{ form.as_p }}
+                <div class="form-options">
+                    <a href="{% url 'accounts:forgot_password' %}">Forgot password?</a>
+                </div>
+                <button class="submit-button" type="submit">Log in</button>
+            </form>
+
+            <div class="register-links">
+                <p>New to CourseSphere?</p>
+                <p><a href="{% url 'accounts:register' role='student' %}">Join as a student</a></p>
+                <p><a href="{% url 'accounts:register' role='instructor' %}">Join as an instructor</a></p>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
