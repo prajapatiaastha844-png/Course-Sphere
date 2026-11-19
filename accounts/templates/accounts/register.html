@@ -2,19 +2,306 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Register {{ role }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Join CourseSphere | {{ role }}</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 12% 18%, #dce8ff 0, transparent 26rem),
+                #f4f7fb;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .site-header {
+            width: min(100% - 2.5rem, 1120px);
+            margin: 0 auto;
+            padding: 1.5rem 0;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: #172033;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .brand:hover {
+            text-decoration: none;
+        }
+        .brand-mark {
+            display: grid;
+            width: 2.4rem;
+            height: 2.4rem;
+            place-items: center;
+            border-radius: 0.75rem;
+            background: #2457c5;
+            color: #fff;
+            font-size: 0.85rem;
+            letter-spacing: 0;
+        }
+        .register-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 490px);
+            align-items: center;
+            gap: clamp(2rem, 7vw, 6rem);
+            width: min(100% - 2.5rem, 1040px);
+            min-height: calc(100vh - 5.5rem);
+            margin: 0 auto;
+            padding: 1rem 0 4rem;
+        }
+        .welcome {
+            max-width: 470px;
+        }
+        .eyebrow {
+            color: #2457c5;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .welcome h1 {
+            margin: 0.9rem 0 1rem;
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            letter-spacing: -0.055em;
+            line-height: 1.08;
+        }
+        .welcome-copy {
+            max-width: 420px;
+            color: #607087;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+        .benefits {
+            display: grid;
+            gap: 0.85rem;
+            margin: 2rem 0 0;
+            padding: 0;
+            color: #33425a;
+            list-style: none;
+        }
+        .benefits li {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .benefit-mark {
+            display: grid;
+            width: 1.6rem;
+            height: 1.6rem;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 50%;
+            background: #e4edff;
+            color: #2457c5;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .register-card {
+            padding: clamp(1.5rem, 4vw, 2.5rem);
+            border: 1px solid #e3e9f2;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 24px 70px rgb(23 32 51 / 10%);
+        }
+        .card-kicker {
+            margin: 0 0 0.6rem;
+            color: #2457c5;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .register-card h2 {
+            margin: 0;
+            font-size: 1.75rem;
+            letter-spacing: -0.035em;
+        }
+        .card-copy {
+            margin: 0.55rem 0 1.6rem;
+            color: #607087;
+            line-height: 1.5;
+        }
+        .register-form p {
+            margin: 0 0 1rem;
+        }
+        .register-form label {
+            display: block;
+            margin-bottom: 0.45rem;
+            color: #33425a;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+        .register-form input {
+            width: 100%;
+            min-height: 2.9rem;
+            padding: 0.7rem 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.6rem;
+            background: #fff;
+            color: #172033;
+            font: inherit;
+        }
+        .register-form input:focus {
+            border-color: #2457c5;
+            outline: 3px solid rgb(36 87 197 / 15%);
+        }
+        .register-form .helptext {
+            display: block;
+            margin-top: 0.4rem;
+            color: #607087;
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+        .errorlist {
+            margin: 0.4rem 0 0;
+            padding-left: 1.2rem;
+            color: #b42318;
+            font-size: 0.88rem;
+        }
+        .submit-button {
+            width: 100%;
+            min-height: 3rem;
+            margin-top: 0.35rem;
+            border: 0;
+            border-radius: 0.65rem;
+            background: #2457c5;
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            transition: background 150ms ease, transform 150ms ease;
+        }
+        .submit-button:hover {
+            transform: translateY(-1px);
+            background: #1d46a2;
+        }
+        .card-footer {
+            margin: 1.4rem 0 0;
+            padding-top: 1.15rem;
+            border-top: 1px solid #e8edf4;
+            color: #607087;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            text-align: center;
+        }
+        .card-footer p {
+            margin: 0.2rem 0;
+        }
+        @media (max-width: 760px) {
+            .register-layout {
+                grid-template-columns: 1fr;
+                gap: 1.75rem;
+                max-width: 490px;
+                min-height: auto;
+                padding-top: 1rem;
+            }
+            .welcome {
+                text-align: center;
+            }
+            .welcome h1 {
+                font-size: 2.5rem;
+            }
+            .welcome-copy {
+                margin-right: auto;
+                margin-left: auto;
+            }
+            .benefits {
+                width: fit-content;
+                margin: 1.5rem auto 0;
+                text-align: left;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Register {{ role }}</h1>
-    {% if role == "Admin" %}
-        <p>Admin profiles can only be created for staff accounts.</p>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
-    </form>
-    <p><a href="{% url 'accounts:login' %}">Log in</a></p>
-    <p><a href="{% url 'accounts:forgot_password' %}">Forgot your password?</a></p>
+    <header class="site-header">
+        <a class="brand" href="{% url 'accounts:login' %}">
+            <span class="brand-mark" aria-hidden="true">CS</span>
+            <span>CourseSphere</span>
+        </a>
+    </header>
+
+    <main class="register-layout">
+        <section class="welcome" aria-labelledby="welcome-heading">
+            {% if role == "Student" %}
+                <span class="eyebrow">Your learning journey</span>
+                <h1 id="welcome-heading">Make learning yours.</h1>
+                <p class="welcome-copy">Create your student account and discover courses designed for your next big step.</p>
+                <ul class="benefits">
+                    <li><span class="benefit-mark" aria-hidden="true">✓</span>Explore courses that match your goals</li>
+                    <li><span class="benefit-mark" aria-hidden="true">✓</span>Keep your learning in one place</li>
+                    <li><span class="benefit-mark" aria-hidden="true">✓</span>Learn at your own pace</li>
+                </ul>
+            {% elif role == "Instructor" %}
+                <span class="eyebrow">Teach on CourseSphere</span>
+                <h1 id="welcome-heading">Share what you know.</h1>
+                <p class="welcome-copy">Create your instructor account and bring practical learning to more students.</p>
+                <ul class="benefits">
+                    <li><span class="benefit-mark" aria-hidden="true">✓</span>Share your subject expertise</li>
+                    <li><span class="benefit-mark" aria-hidden="true">✓</span>Build meaningful learning experiences</li>
+                    <li><span class="benefit-mark" aria-hidden="true">✓</span>Support students as they grow</li>
+                </ul>
+            {% else %}
+                <span class="eyebrow">CourseSphere account</span>
+                <h1 id="welcome-heading">Set up your profile.</h1>
+                <p class="welcome-copy">Complete your account details to continue.</p>
+            {% endif %}
+        </section>
+
+        <section class="register-card" aria-labelledby="register-heading">
+            <p class="card-kicker">
+                {% if role == "Instructor" %}
+                    Join as an instructor
+                {% elif role == "Student" %}
+                    Join as a student
+                {% else %}
+                    {{ role }} profile
+                {% endif %}
+            </p>
+            <h2 id="register-heading">Create your account</h2>
+            {% if role == "Admin" %}
+                <p class="card-copy">Admin profiles can only be created for staff accounts.</p>
+            {% else %}
+                <p class="card-copy">Fill in your details to get started. All fields are required.</p>
+            {% endif %}
+
+            <form class="register-form" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="submit-button" type="submit">Create {{ role|lower }} account</button>
+            </form>
+
+            <div class="card-footer">
+                <p>Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
+                <p><a href="{% url 'accounts:forgot_password' %}">Forgot your password?</a></p>
+            </div>
+        </section>
+    </main>
 </body>
 </html>

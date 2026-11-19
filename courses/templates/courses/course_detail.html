@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ course.title }} | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem max(1.25rem, calc((100% - 1100px) / 2));
+            background: #fff;
+            border-bottom: 1px solid #e3e9f2;
+        }
+        .header-links {
+            display: flex;
+            gap: 1.25rem;
+        }
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 1.25rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+        .course-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(260px, 0.65fr);
+            align-items: start;
+            gap: 1.5rem;
+        }
+        .course-content,
+        .course-facts {
+            padding: clamp(1.5rem, 4vw, 2.5rem);
+            border: 1px solid #e3e9f2;
+            border-radius: 1rem;
+            background: #fff;
+            box-shadow: 0 12px 32px rgb(23 32 51 / 5%);
+        }
+        .category {
+            color: #2457c5;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        h1 {
+            margin: 0.6rem 0 1rem;
+            font-size: clamp(2rem, 5vw, 3rem);
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+        }
+        .description {
+            margin: 0;
+            color: #526174;
+            font-size: 1.05rem;
+            line-height: 1.75;
+        }
+        .course-facts h2 {
+            margin: 0 0 1.25rem;
+            font-size: 1.25rem;
+        }
+        .facts-list {
+            display: grid;
+            gap: 1.1rem;
+            margin: 0;
+        }
+        .facts-list div {
+            display: grid;
+            gap: 0.3rem;
+        }
+        .facts-list dt {
+            color: #607087;
+            font-size: 0.82rem;
+        }
+        .facts-list dd {
+            margin: 0;
+            font-weight: 600;
+        }
+        .price {
+            color: #172033;
+            font-size: 1.35rem;
+        }
+        @media (max-width: 700px) {
+            header {
+                padding-right: 1rem;
+                padding-left: 1rem;
+            }
+            .course-layout {
+                grid-template-columns: 1fr;
+            }
+            main {
+                padding-top: 2rem;
+            }
+        }
+        @media (max-width: 420px) {
+            .header-links {
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>CourseSphere</strong>
+        <nav class="header-links" aria-label="Account navigation">
+            <a href="{% url 'courses:course_list' %}">Explore courses</a>
+            <a href="{% url 'accounts:dashboard' %}">My account</a>
+        </nav>
+    </header>
+    <main>
+        <a class="back-link" href="{% url 'courses:course_list' %}">← Back to courses</a>
+        <div class="course-layout">
+            <article class="course-content">
+                <span class="category">{{ course.category }}</span>
+                <h1>{{ course.title }}</h1>
+                <p class="description">{{ course.description|linebreaksbr }}</p>
+            </article>
+            <aside class="course-facts" aria-labelledby="course-details-heading">
+                <h2 id="course-details-heading">Course details</h2>
+                <dl class="facts-list">
+                    <div>
+                        <dt>Level</dt>
+                        <dd>{{ course.get_level_display }}</dd>
+                    </div>
+                    <div>
+                        <dt>Instructor</dt>
+                        <dd>
+                            {% if course.instructor %}
+                                {{ course.instructor.name }}
+                            {% else %}
+                                Instructor to be announced
+                            {% endif %}
+                        </dd>
+                    </div>
+                    {% if course.instructor and course.instructor.specialization %}
+                        <div>
+                            <dt>Instructor specialization</dt>
+                            <dd>{{ course.instructor.specialization }}</dd>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <dt>Price</dt>
+                        <dd class="price">{{ course.price|floatformat:2 }}</dd>
+                    </div>
+                </dl>
+            </aside>
+        </div>
+    </main>
+</body>
+</html>

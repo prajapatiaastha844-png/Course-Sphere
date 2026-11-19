@@ -14,6 +14,20 @@ from .models import Admin, Instructor, PasswordResetOTP, Student
 
 
 class AccountRegistrationTests(TestCase):
+    def test_registration_pages_show_role_specific_copy_and_fields(self):
+        student_response = self.client.get(
+            reverse("accounts:register", kwargs={"role": "student"})
+        )
+        self.assertContains(student_response, "Make learning yours.")
+        self.assertContains(student_response, 'name="student_id"')
+
+        instructor_response = self.client.get(
+            reverse("accounts:register", kwargs={"role": "instructor"})
+        )
+        self.assertContains(instructor_response, "Share what you know.")
+        self.assertContains(instructor_response, 'name="employee_id"')
+        self.assertContains(instructor_response, 'name="specialization"')
+
     def test_student_registration_creates_auth_user_and_profile(self):
         response = self.client.post(
             reverse("accounts:register", kwargs={"role": "student"}),

@@ -11,6 +11,9 @@
             color: #172033;
             background: #f4f7fb;
         }
+        * {
+            box-sizing: border-box;
+        }
         body {
             margin: 0;
         }
@@ -39,6 +42,53 @@
         .intro p {
             color: #607087;
             margin-bottom: 0;
+        }
+        .search-form {
+            display: grid;
+            grid-template-columns: minmax(240px, 2fr) minmax(150px, 1fr) minmax(150px, 1fr) auto;
+            align-items: flex-end;
+            gap: 0.75rem;
+            margin: 0 0 2rem;
+        }
+        .search-field {
+            min-width: 0;
+        }
+        .search-form label {
+            display: block;
+            margin-bottom: 0.45rem;
+            color: #33425a;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+        .search-form input,
+        .search-form select {
+            width: 100%;
+            min-height: 3rem;
+            padding: 0.7rem 0.85rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.6rem;
+            background: #fff;
+            color: #172033;
+            font: inherit;
+        }
+        .search-form input:focus,
+        .search-form select:focus {
+            border-color: #2457c5;
+            outline: 3px solid rgb(36 87 197 / 15%);
+        }
+        .search-form button {
+            min-height: 3rem;
+            padding: 0.7rem 1.25rem;
+            border: 0;
+            border-radius: 0.6rem;
+            background: #2457c5;
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+        }
+        .search-form button:hover {
+            background: #1d46a2;
         }
         .course-grid {
             display: grid;
@@ -91,6 +141,51 @@
             color: #607087;
             text-align: center;
         }
+        .empty-state a {
+            display: inline-block;
+            margin-top: 0.5rem;
+            color: #2457c5;
+            font-weight: 700;
+        }
+        .course-count {
+            margin: -0.75rem 0 1rem;
+            color: #607087;
+        }
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .pagination a {
+            padding: 0.65rem 0.9rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.55rem;
+            background: #fff;
+            color: #2457c5;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .pagination a:hover {
+            background: #edf3ff;
+        }
+        .pagination-status {
+            color: #607087;
+        }
+        @media (max-width: 760px) {
+            .search-form {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .search-form button {
+                grid-column: 1 / -1;
+            }
+        }
+        @media (max-width: 520px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -104,12 +199,55 @@
             <p>Find a course to help you learn something new.</p>
         </section>
 
+        <form class="search-form" method="get" role="search">
+            <div class="search-field">
+                <label for="course-search">Search by course title or category</label>
+                <input
+                    id="course-search"
+                    type="search"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Try “design” or “science”"
+                >
+            </div>
+            <div class="search-field">
+                <label for="course-category">Category</label>
+                <select id="course-category" name="category">
+                    <option value="">All categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}"{% if selected_category == category %} selected{% endif %}>
+                            {{ category }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="search-field">
+                <label for="course-level">Level</label>
+                <select id="course-level" name="level">
+                    <option value="">All levels</option>
+                    {% for level_value, level_label in levels %}
+                        <option value="{{ level_value }}"{% if selected_level == level_value %} selected{% endif %}>
+                            {{ level_label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+
         {% if courses %}
-            <section class="course-grid" aria-label="Available courses">
+            <p class="course-count" role="status">
+                {{ page_obj.paginator.count }} course{{ page_obj.paginator.count|pluralize }} found
+            </p>
+            <section class="course-grid" aria-label="Available courses" aria-live="polite">
                 {% for course in courses %}
                     <article class="course-card">
                         <span class="category">{{ course.category }}</span>
-                        <h2>{{ course.title }}</h2>
+                        <h2>
+                            <a href="{% url 'courses:course_detail' course.pk %}">
+                                {{ course.title }}
+                            </a>
+                        </h2>
                         <p class="description">{{ course.description }}</p>
                         <div class="details">
                             <span>{{ course.get_level_display }}</span>
@@ -125,8 +263,32 @@
                     </article>
                 {% endfor %}
             </section>
+            {% if page_obj.has_other_pages %}
+                <nav class="pagination" aria-label="Course list pages">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">
+                            Previous
+                        </a>
+                    {% endif %}
+                    <span class="pagination-status">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                    {% if page_obj.has_next %}
+                        <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        {% elif search_query or selected_category or selected_level %}
+            <div class="empty-state" role="status">
+                <p>No courses match your search and filters. Try changing your selections.</p>
+                <a href="{% url 'courses:course_list' %}">Clear search and filters</a>
+            </div>
         {% else %}
-            <p class="empty-state">There are no published courses yet. Please check back soon.</p>
+            <div class="empty-state" role="status">
+                <p>There are no published courses yet. Please check back soon.</p>
+            </div>
         {% endif %}
     </main>
 </body>
