@@ -113,6 +113,8 @@ def dashboard(request):
     context = {"profile": profile, "role": role}
     if isinstance(profile, Instructor):
         context["courses"] = profile.courses.all()
+    elif isinstance(profile, Student):
+        context["cart_items"] = profile.cart_items.select_related("course")
     return render(
         request,
         "accounts/dashboard.html",

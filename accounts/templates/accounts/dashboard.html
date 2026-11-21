@@ -266,6 +266,7 @@
         <div class="header-actions">
             {% if role == "Student" %}
                 <a href="{% url 'courses:course_list' %}">Browse courses</a>
+                <a href="{% url 'courses:cart' %}">My cart</a>
             {% endif %}
             <form class="logout-form" method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
@@ -321,6 +322,38 @@
                         </div>
                     </dl>
                 </aside>
+            </section>
+
+            <section aria-labelledby="cart-heading" style="margin-top: 2.25rem;">
+                <div class="section-heading">
+                    <h2 id="cart-heading">Your cart ({{ cart_items|length }})</h2>
+                    {% if cart_items %}
+                        <a href="{% url 'courses:cart' %}">View cart page &rarr;</a>
+                    {% endif %}
+                </div>
+                {% if cart_items %}
+                    <div class="course-grid">
+                        {% for item in cart_items %}
+                            <article class="course-card">
+                                <span class="course-category">{{ item.course.category }}</span>
+                                <h3><a href="{% url 'courses:course_detail' item.course.pk %}">{{ item.course.title }}</a></h3>
+                                <div class="course-meta">
+                                    <span>${{ item.course.price|floatformat:2 }}</span>
+                                    <span>Qty: {{ item.quantity }}</span>
+                                </div>
+                                <form method="post" action="{% url 'courses:remove_from_cart' item.pk %}" style="margin-top: 1rem;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'accounts:dashboard' %}">
+                                    <button class="logout-button" type="submit" style="color: #a32626; border-color: #f0c5c5;">Remove</button>
+                                </form>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-state">
+                        Your cart is empty. Explore our <a href="{% url 'courses:course_list' %}">courses catalog</a> to add courses to your cart.
+                    </p>
+                {% endif %}
             </section>
         {% elif role == "Instructor" %}
             <section class="content-grid" aria-label="Instructor dashboard">

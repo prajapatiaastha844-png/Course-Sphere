@@ -1,12 +1,144 @@
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
+import razorpay
 
 from accounts.models import Instructor, Student
-from .models import Course
+from .models import Cart, Course, Order
+
+
+class CartModelTests(TestCase):
+    def test_cart_item_links_student_and_course(self):
+        student = Student.objects.create(
+            name="Student Example",
+            email="cart-student@example.com",
+            student_id="CART-ST-001",
+        )
+        course = Course.objects.create(
+            title="Cart Course",
+            category="Technology",
+            price=Decimal("10.00"),
+            description="A course in the student's cart.",
+        )
+
+        cart_item = Cart.objects.create(student=student, course=course, quantity=2)
+
+        self.assertEqual(cart_item.student, student)
+        self.assertEqual(cart_item.course, course)
+        self.assertEqual(cart_item.quantity, 2)
+        self.assertEqual(student.cart_items.get(), cart_item)
+        self.assertEqual(course.cart_items.get(), cart_item)
+
+
+class CartViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="cart-student@example.com",
+            email="cart-student@example.com",
+            password="StrongPassword-2026!",
+        )
+        self.student = Student.objects.create(
+            user=self.user,
+            name="Cart Student",
+            email=self.user.email,
+            student_id="CART-VIEW-ST-001",
+        )
+        self.course = Course.objects.create(
+            title="Cart View Course",
+            category="Technology",
+            price=Decimal("10.00"),
+            description="A published course.",
+            is_published=True,
+        )
+        self.client.force_login(self.user)
+
+    def test_student_can_add_course_once_and_view_cart(self):
+        add_url = reverse("courses:add_to_cart", kwargs={"pk": self.course.pk})
+
+        response = self.client.post(add_url)
+        self.assertRedirects(response, reverse("courses:cart"))
+
+        response = self.client.post(add_url)
+        self.assertRedirects(response, reverse("courses:cart"))
+        self.assertEqual(Cart.objects.filter(student=self.student).count(), 1)
+
+        response = self.client.get(reverse("courses:cart"))
+        self.assertContains(response, self.course.title)
+        self.assertEqual(response.context["total_price"], Decimal("10.00"))
+
+    def test_student_can_remove_course_from_cart(self):
+        cart_item = Cart.objects.create(student=self.student, course=self.course)
+
+        response = self.client.post(
+            reverse("courses:remove_from_cart", kwargs={"pk": cart_item.pk})
+        )
+
+        self.assertRedirects(response, reverse("courses:cart"))
+        self.assertFalse(Cart.objects.filter(pk=cart_item.pk).exists())
+
+    def test_student_cannot_remove_another_students_cart_item(self):
+        another_student = Student.objects.create(
+            name="Another Student",
+            email="another-cart-student@example.com",
+            student_id="CART-VIEW-ST-002",
+        )
+        cart_item = Cart.objects.create(
+            student=another_student,
+            course=self.course,
+        )
+
+        response = self.client.post(
+            reverse("courses:remove_from_cart", kwargs={"pk": cart_item.pk})
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Cart.objects.filter(pk=cart_item.pk).exists())
+
+    def test_student_can_remove_course_by_course_pk(self):
+        Cart.objects.create(student=self.student, course=self.course)
+
+        response = self.client.post(
+            reverse("courses:remove_course_from_cart", kwargs={"pk": self.course.pk})
+        )
+
+        self.assertRedirects(response, reverse("courses:cart"))
+        self.assertFalse(Cart.objects.filter(student=self.student, course=self.course).exists())
+
+    def test_add_and_remove_respect_safe_next_redirect(self):
+        next_url = reverse("courses:course_detail", kwargs={"pk": self.course.pk})
+        response = self.client.post(
+            reverse("courses:add_to_cart", kwargs={"pk": self.course.pk}),
+            {"next": next_url},
+        )
+        self.assertRedirects(response, next_url)
+
+        response = self.client.post(
+            reverse("courses:remove_course_from_cart", kwargs={"pk": self.course.pk}),
+            {"next": next_url},
+        )
+        self.assertRedirects(response, next_url)
+
+    def test_course_detail_and_list_reflect_cart_status(self):
+        detail_url = reverse("courses:course_detail", kwargs={"pk": self.course.pk})
+        list_url = reverse("courses:course_list")
+
+        response = self.client.get(detail_url)
+        self.assertFalse(response.context["in_cart"])
+        self.assertContains(response, "Add to cart")
+
+        Cart.objects.create(student=self.student, course=self.course)
+
+        response = self.client.get(detail_url)
+        self.assertTrue(response.context["in_cart"])
+        self.assertContains(response, "Remove from cart")
+
+        response = self.client.get(list_url)
+        self.assertIn(self.course.pk, response.context["cart_course_ids"])
+        self.assertContains(response, "In cart")
 
 
 class CourseModelTests(TestCase):
@@ -296,3 +428,143 @@ class CourseDetailViewTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 403)
+
+
+class RazorpayCheckoutTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="rzp-student@example.com",
+            email="rzp-student@example.com",
+            password="StrongPassword-2026!",
+        )
+        self.student = Student.objects.create(
+            user=self.user,
+            name="RZP Student",
+            email=self.user.email,
+            student_id="RZP-ST-001",
+        )
+        self.course = Course.objects.create(
+            title="Razorpay Masterclass",
+            category="Fintech",
+            price=Decimal("49.99"),
+            description="Learn payment gateway integrations.",
+            is_published=True,
+        )
+        self.client.force_login(self.user)
+
+    def test_checkout_with_empty_cart_redirects_to_courses(self):
+        response = self.client.get(reverse("courses:checkout"))
+        self.assertRedirects(response, reverse("courses:course_list"))
+
+    @patch("courses.views.get_razorpay_client")
+    def test_checkout_creates_order_and_renders_page(self, mock_client_getter):
+        mock_client = MagicMock()
+        mock_client.order.create.return_value = {"id": "order_test_rzp123"}
+        mock_client_getter.return_value = mock_client
+
+        Cart.objects.create(student=self.student, course=self.course)
+
+        response = self.client.get(reverse("courses:checkout"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "courses/checkout.html")
+        self.assertContains(response, "Pay with Razorpay")
+        self.assertContains(response, "order_test_rzp123")
+
+        order = Order.objects.get(student=self.student)
+        self.assertEqual(order.razorpay_order_id, "order_test_rzp123")
+        self.assertEqual(order.total_amount, Decimal("49.99"))
+        self.assertEqual(order.status, Order.Status.PENDING)
+        self.assertIn(self.course, order.courses.all())
+
+    @patch("courses.views.get_razorpay_client")
+    def test_payment_callback_success_updates_order_and_clears_cart(self, mock_client_getter):
+        mock_client = MagicMock()
+        mock_client.utility.verify_payment_signature.return_value = True
+        mock_client_getter.return_value = mock_client
+
+        Cart.objects.create(student=self.student, course=self.course)
+        order = Order.objects.create(
+            student=self.student,
+            total_amount=Decimal("49.99"),
+            currency="INR",
+            razorpay_order_id="order_test_success_999",
+            status=Order.Status.PENDING,
+        )
+        order.courses.add(self.course)
+
+        response = self.client.post(
+            reverse("courses:payment_callback"),
+            {
+                "razorpay_order_id": "order_test_success_999",
+                "razorpay_payment_id": "pay_test_payment_123",
+                "razorpay_signature": "valid_signature_abc",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("courses:order_success", kwargs={"pk": order.pk}),
+        )
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.SUCCESS)
+        self.assertEqual(order.razorpay_payment_id, "pay_test_payment_123")
+        self.assertEqual(order.razorpay_signature, "valid_signature_abc")
+
+        # Cart should be cleared of the purchased course
+        self.assertFalse(Cart.objects.filter(student=self.student).exists())
+
+    @patch("courses.views.get_razorpay_client")
+    def test_payment_callback_invalid_signature_marks_order_failed(self, mock_client_getter):
+        mock_client = MagicMock()
+        mock_client.utility.verify_payment_signature.side_effect = (
+            razorpay.errors.SignatureVerificationError("Signature mismatch")
+        )
+        mock_client_getter.return_value = mock_client
+
+        Cart.objects.create(student=self.student, course=self.course)
+        order = Order.objects.create(
+            student=self.student,
+            total_amount=Decimal("49.99"),
+            currency="INR",
+            razorpay_order_id="order_test_fail_000",
+            status=Order.Status.PENDING,
+        )
+        order.courses.add(self.course)
+
+        response = self.client.post(
+            reverse("courses:payment_callback"),
+            {
+                "razorpay_order_id": "order_test_fail_000",
+                "razorpay_payment_id": "pay_test_bad_123",
+                "razorpay_signature": "invalid_signature",
+            },
+        )
+
+        self.assertRedirects(response, reverse("courses:cart"))
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.FAILED)
+        # Cart item should still remain
+        self.assertTrue(Cart.objects.filter(student=self.student).exists())
+
+    def test_order_success_view_accessible_by_student(self):
+        order = Order.objects.create(
+            student=self.student,
+            total_amount=Decimal("49.99"),
+            currency="INR",
+            razorpay_order_id="order_success_view_test",
+            razorpay_payment_id="pay_test_view_123",
+            status=Order.Status.SUCCESS,
+        )
+        order.courses.add(self.course)
+
+        response = self.client.get(
+            reverse("courses:order_success", kwargs={"pk": order.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "courses/order_success.html")
+        self.assertContains(response, "Payment Successful!")
+        self.assertContains(response, self.course.title)

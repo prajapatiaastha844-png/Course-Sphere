@@ -115,6 +115,19 @@
             margin: 0.65rem 0;
             font-size: 1.2rem;
         }
+        .course-card form {
+            margin-top: 1rem;
+        }
+        .course-card button {
+            padding: 0.65rem 0.9rem;
+            border: 0;
+            border-radius: 0.55rem;
+            background: #2457c5;
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+        }
         .description {
             color: #607087;
             line-height: 1.55;
@@ -191,9 +204,19 @@
 <body>
     <header>
         <strong>CourseSphere</strong>
-        <a href="{% url 'accounts:dashboard' %}">My account</a>
+        <nav aria-label="Account navigation">
+            <a href="{% url 'courses:cart' %}">My cart</a>
+            <a href="{% url 'accounts:dashboard' %}">My account</a>
+        </nav>
     </header>
     <main>
+        {% if messages %}
+            <div class="messages" role="status" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: 0.6rem; background: #e8f1ff; border: 1px solid #d5e1fb;">
+                {% for message in messages %}
+                    <p style="margin: 0; color: #172033; font-weight: 500;">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
         <section class="intro">
             <h1>Explore courses</h1>
             <p>Find a course to help you learn something new.</p>
@@ -260,6 +283,21 @@
                             </span>
                             <span class="price">Price: {{ course.price|floatformat:2 }}</span>
                         </div>
+                        {% if course.pk in cart_course_ids %}
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; align-items: center;">
+                                <a href="{% url 'courses:cart' %}" style="flex: 1; text-align: center; text-decoration: none; padding: 0.65rem 0.9rem; border-radius: 0.55rem; background: #e8f1ff; color: #2457c5; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; min-height: 2.6rem;">In cart &#10003;</a>
+                                <form method="post" action="{% url 'courses:remove_course_from_cart' course.pk %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" style="padding: 0.65rem 0.9rem; border: 1px solid #cbd5e1; border-radius: 0.55rem; background: #fff; color: #a32626; cursor: pointer; font: inherit; font-weight: 700; min-height: 2.6rem;">Remove</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <form method="post" action="{% url 'courses:add_to_cart' course.pk %}">
+                                {% csrf_token %}
+                                <button type="submit">Add to cart</button>
+                            </form>
+                        {% endif %}
                     </article>
                 {% endfor %}
             </section>

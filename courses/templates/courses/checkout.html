@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Checkout | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem max(1.25rem, calc((100% - 900px) / 2));
+            background: #fff;
+            border-bottom: 1px solid #e3e9f2;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2.5rem 1.25rem 4rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .card {
+            padding: 1.5rem;
+            border: 1px solid #e3e9f2;
+            border-radius: 0.85rem;
+            background: #fff;
+            box-shadow: 0 8px 24px rgb(23 32 51 / 4%);
+        }
+        .card h2 {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+        }
+        .course-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid #f0f4f9;
+        }
+        .course-item:last-child {
+            border-bottom: 0;
+        }
+        .course-title {
+            font-weight: 600;
+        }
+        .course-category {
+            color: #607087;
+            font-size: 0.85rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.55rem;
+            border-radius: 999px;
+            background: #eef4ff;
+            color: #2457c5;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.6rem 0;
+            color: #607087;
+        }
+        .summary-row.total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e3e9f2;
+            color: #172033;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .pay-button {
+            width: 100%;
+            min-height: 3.2rem;
+            margin-top: 1.25rem;
+            padding: 0.85rem 1rem;
+            border: 0;
+            border-radius: 0.6rem;
+            background: #2457c5;
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .pay-button:hover {
+            background: #1d46a2;
+        }
+        .sandbox-notice {
+            margin-top: 1.25rem;
+            padding: 0.85rem;
+            border-radius: 0.6rem;
+            background: #fff8e6;
+            border: 1px solid #f6e0b5;
+            font-size: 0.85rem;
+            color: #7a5814;
+            line-height: 1.5;
+        }
+        .sandbox-notice strong {
+            display: block;
+            margin-bottom: 0.2rem;
+            color: #5c4109;
+        }
+        @media (max-width: 680px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>CourseSphere</strong>
+        <nav aria-label="Account navigation">
+            <a href="{% url 'courses:cart' %}">My cart</a>
+            <a href="{% url 'accounts:dashboard' %}">My account</a>
+        </nav>
+    </header>
+
+    <main>
+        <a class="back-link" href="{% url 'courses:cart' %}">← Return to cart</a>
+        <h1>Checkout</h1>
+
+        <div class="checkout-grid">
+            <section class="card" aria-labelledby="order-courses-heading">
+                <h2 id="order-courses-heading">Courses in your order ({{ cart_items|length }})</h2>
+                <div>
+                    {% for item in cart_items %}
+                        <div class="course-item">
+                            <div>
+                                <div class="course-title">{{ item.course.title }}</div>
+                                <div class="course-category">{{ item.course.category }} · {{ item.course.get_level_display }}</div>
+                            </div>
+                            <div style="font-weight: 600;">
+                                ${{ item.course.price|floatformat:2 }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <aside class="card" aria-labelledby="order-summary-heading">
+                <h2 id="order-summary-heading">Order summary <span class="badge">Razorpay Sandbox</span></h2>
+                <div class="summary-row">
+                    <span>Student</span>
+                    <strong>{{ student_name }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Email</span>
+                    <span>{{ student_email }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Currency</span>
+                    <span>{{ currency }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total Amount</span>
+                    <span>${{ total_price|floatformat:2 }}</span>
+                </div>
+
+                <button id="rzp-button" class="pay-button" type="button">
+                    <span>Pay with Razorpay</span>
+                </button>
+
+                <div class="sandbox-notice">
+                    <strong>Razorpay Sandbox Mode Active</strong>
+                    Payment is processed through the Razorpay sandbox gateway using test credentials. No actual money will be charged.
+                </div>
+
+                <!-- Hidden form submitted upon Razorpay modal completion -->
+                <form id="payment-verify-form" method="post" action="{% url 'courses:payment_callback' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id" value="{{ razorpay_order_id }}">
+                    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" value="">
+                    <input type="hidden" name="razorpay_signature" id="razorpay_signature" value="">
+                </form>
+            </aside>
+        </div>
+    </main>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ amount_in_paise }}",
+            "currency": "{{ currency }}",
+            "name": "CourseSphere",
+            "description": "Enrollment for Order #{{ order.id }}",
+            "order_id": "{{ razorpay_order_id }}",
+            "handler": function (response) {
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id || "{{ razorpay_order_id }}";
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('payment-verify-form').submit();
+            },
+            "prefill": {
+                "name": "{{ student_name|escapejs }}",
+                "email": "{{ student_email|escapejs }}"
+            },
+            "theme": {
+                "color": "#2457c5"
+            }
+        };
+
+        var payBtn = document.getElementById('rzp-button');
+        if (payBtn) {
+            payBtn.onclick = function (e) {
+                e.preventDefault();
+                if (typeof Razorpay !== "undefined") {
+                    var rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        alert('Payment failed: ' + (response.error.description || 'Unknown error'));
+                    });
+                    rzp.open();
+                } else {
+                    // Fallback for headless environments or blocked external scripts
+                    alert("Razorpay checkout is ready. When Razorpay modal completes, payment verification will process.");
+                }
+            };
+        }
+    </script>
+</body>
+</html>

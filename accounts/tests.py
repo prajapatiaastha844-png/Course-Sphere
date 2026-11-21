@@ -173,6 +173,33 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, "Explore courses")
         self.assertContains(response, "ST-100")
 
+    def test_student_dashboard_displays_cart_items(self):
+        user = get_user_model().objects.create_user(
+            username="student-cart@example.com",
+            password="StrongPassword-2026!",
+        )
+        student = Student.objects.create(
+            user=user,
+            name="Cart Student Example",
+            email="student-cart@example.com",
+            student_id="ST-CART-1",
+        )
+        course = Course.objects.create(
+            title="Cart Course Item",
+            category="Design",
+            price="29.99",
+            description="Course in cart.",
+            is_published=True,
+        )
+        from courses.models import Cart
+        Cart.objects.create(student=student, course=course)
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("accounts:dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Your cart (1)")
+        self.assertContains(response, "Cart Course Item")
+
     def test_instructor_dashboard_lists_assigned_courses(self):
         user = get_user_model().objects.create_user(
             username="instructor@example.com",

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My cart | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem max(1.25rem, calc((100% - 900px) / 2));
+            background: #fff;
+            border-bottom: 1px solid #e3e9f2;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1.25rem;
+        }
+        .messages {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.6rem;
+            background: #e8f1ff;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1.25rem;
+            border: 1px solid #e3e9f2;
+            border-radius: 0.8rem;
+            background: #fff;
+        }
+        .cart-item h2 {
+            margin: 0 0 0.5rem;
+            font-size: 1.1rem;
+        }
+        .cart-item p {
+            margin: 0;
+            color: #607087;
+        }
+        button {
+            padding: 0.65rem 0.9rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.55rem;
+            background: #fff;
+            color: #a32626;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+        }
+        .empty-state {
+            padding: 2rem;
+            border: 1px dashed #b9c5d6;
+            border-radius: 0.8rem;
+            background: #fff;
+            color: #607087;
+            text-align: center;
+        }
+        .cart-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 0.8rem;
+            background: #fff;
+            border: 1px solid #e3e9f2;
+        }
+        .cart-summary h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #172033;
+        }
+        @media (max-width: 520px) {
+            .cart-item {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>CourseSphere</strong>
+        <nav aria-label="Account navigation">
+            <a href="{% url 'courses:course_list' %}">Explore courses</a>
+            <a href="{% url 'accounts:dashboard' %}">My account</a>
+        </nav>
+    </header>
+    <main>
+        <h1>My cart</h1>
+        {% if messages %}
+            <div class="messages" role="status">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if cart_items %}
+            {% for item in cart_items %}
+                <article class="cart-item">
+                    <div>
+                        <h2><a href="{% url 'courses:course_detail' item.course.pk %}">{{ item.course.title }}</a></h2>
+                        <p>{{ item.course.category }} · Quantity: {{ item.quantity }} · Price: {{ item.course.price|floatformat:2 }}</p>
+                    </div>
+                    <form method="post" action="{% url 'courses:remove_from_cart' item.pk %}">
+                        {% csrf_token %}
+                        <button type="submit">Remove</button>
+                    </form>
+                </article>
+            {% endfor %}
+            <div class="cart-summary">
+                <div>
+                    <span>Total Items: {{ cart_items|length }}</span>
+                    <h3>Total: ${{ total_price|floatformat:2 }}</h3>
+                </div>
+                <a href="{% url 'courses:checkout' %}" style="display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 0.6rem; background: #2457c5; color: #fff; text-decoration: none; font-weight: 700; font-size: 1rem;">
+                    Proceed to Checkout &rarr;
+                </a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>Your cart is empty.</p>
+                <a href="{% url 'courses:course_list' %}">Explore courses</a>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html>

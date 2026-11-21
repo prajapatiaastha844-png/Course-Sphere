@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment Successful | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem max(1.25rem, calc((100% - 800px) / 2));
+            background: #fff;
+            border-bottom: 1px solid #e3e9f2;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 1.25rem;
+        }
+        .success-card {
+            padding: 2.5rem;
+            border: 1px solid #c9e9d6;
+            border-radius: 1rem;
+            background: #fff;
+            box-shadow: 0 12px 32px rgb(23 32 51 / 5%);
+            text-align: center;
+        }
+        .success-icon {
+            display: inline-grid;
+            width: 4rem;
+            height: 4rem;
+            place-items: center;
+            border-radius: 50%;
+            background: #e6f7ef;
+            color: #0e8544;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            margin: 0.5rem 0;
+            font-size: 1.8rem;
+            color: #125633;
+        }
+        .subtitle {
+            color: #607087;
+            margin-bottom: 2rem;
+        }
+        .receipt-details {
+            max-width: 500px;
+            margin: 0 auto 2rem;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+        }
+        .receipt-row dt {
+            color: #607087;
+        }
+        .receipt-row dd {
+            margin: 0;
+            font-weight: 600;
+        }
+        .enrolled-courses {
+            text-align: left;
+            margin: 2rem 0;
+        }
+        .enrolled-courses h2 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+        }
+        .course-chip {
+            display: block;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.5rem;
+            background: #fff;
+            border: 1px solid #e3e9f2;
+            border-radius: 0.6rem;
+            font-weight: 600;
+        }
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.6rem;
+            background: #2457c5;
+            color: #fff;
+            font-weight: 700;
+        }
+        .btn-primary:hover {
+            background: #1d46a2;
+            text-decoration: none;
+        }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.6rem;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #33425a;
+            font-weight: 700;
+        }
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>CourseSphere</strong>
+        <nav aria-label="Account navigation">
+            <a href="{% url 'courses:course_list' %}">Explore courses</a>
+            <a href="{% url 'accounts:dashboard' %}">My account</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="success-card">
+            <div class="success-icon">&#10003;</div>
+            <h1>Payment Successful!</h1>
+            <p class="subtitle">Thank you for enrolling in CourseSphere. Your order has been placed successfully.</p>
+
+            <dl class="receipt-details">
+                <div class="receipt-row">
+                    <dt>Order ID</dt>
+                    <dd>#{{ order.id }}</dd>
+                </div>
+                <div class="receipt-row">
+                    <dt>Razorpay Order ID</dt>
+                    <dd>{{ order.razorpay_order_id }}</dd>
+                </div>
+                <div class="receipt-row">
+                    <dt>Razorpay Payment ID</dt>
+                    <dd>{{ order.razorpay_payment_id|default:"rzp_sandbox_verified" }}</dd>
+                </div>
+                <div class="receipt-row">
+                    <dt>Amount Paid</dt>
+                    <dd>${{ order.total_amount|floatformat:2 }} {{ order.currency }}</dd>
+                </div>
+                <div class="receipt-row">
+                    <dt>Status</dt>
+                    <dd style="color: #0e8544;">{{ order.get_status_display }}</dd>
+                </div>
+            </dl>
+
+            <section class="enrolled-courses">
+                <h2>Enrolled Courses</h2>
+                {% for course in order.courses.all %}
+                    <div class="course-chip">
+                        {{ course.title }} · <span style="color: #607087; font-weight: normal;">{{ course.category }}</span>
+                    </div>
+                {% endfor %}
+            </section>
+
+            <div class="actions">
+                <a class="btn-primary" href="{% url 'accounts:dashboard' %}">Go to dashboard</a>
+                <a class="btn-secondary" href="{% url 'courses:course_list' %}">Explore more courses</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
