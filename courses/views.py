@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 import razorpay
 
-from accounts.models import Student
+from accounts.models import Student, Enrollment, Instructor
 
 from .models import Cart, Course, Order
 from .razorpay_client import get_razorpay_client
@@ -22,6 +22,17 @@ def _get_student(request):
     if student is None:
         raise PermissionDenied
     return student
+
+def _get_instructor(request):
+    instructor = Instructor.objects.filter(user=request.user).first()
+    if instructor is None:
+        raise PermissionDenied
+    return instructor
+
+@login_required(login_url="accounts:login")
+def instructor_dashboard(request):
+    instructor = _get_instructor(request)
+    return render(request, "courses/instructor_dashboard.html", {"instructor": instructor})
 
 
 @login_required(login_url="accounts:login")
@@ -238,6 +249,9 @@ def payment_callback(request):
         order.status = Order.Status.SUCCESS
         order.save()
 
+
+        for course in order.courses.all():
+            Enrollment.objects.get_or_create(student=student, course=course)
         # Clear purchased items from the student's cart
         Cart.objects.filter(student=student, course__in=order.courses.all()).delete()
 

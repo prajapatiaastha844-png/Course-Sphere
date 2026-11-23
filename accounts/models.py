@@ -41,7 +41,33 @@ class Student(Person):
     student_id = models.CharField(max_length=50, unique=True)
     enrollment_date = models.DateField(auto_now_add=True)
 
+    # New many-to-many relationship via Enrollment
+    enrolled_courses = models.ManyToManyField(
+        "courses.Course",
+        through="Enrollment",
+        related_name="enrolled_students",
+    )
+
+    student_id = models.CharField(max_length=50, unique=True)
+    enrollment_date = models.DateField(auto_now_add=True)
+
 
 class Instructor(Person):
+    employee_id = models.CharField(max_length=50, unique=True)
+    specialization = models.CharField(max_length=100)
+
+
+class Enrollment(models.Model):
+    """Intermediate model linking Student and Course for enrollment tracking."""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="enrollments")
+    course = models.ForeignKey("courses.Course", on_delete=models.CASCADE, related_name="enrollments")
+    date_enrolled = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("student", "course")
+        ordering = ["-date_enrolled"]
+
+    def __str__(self):
+        return f"{self.student} enrolled in {self.course}"
     employee_id = models.CharField(max_length=50, unique=True)
     specialization = models.CharField(max_length=100)
