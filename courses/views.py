@@ -8,11 +8,12 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 import razorpay
 
 from accounts.models import Student, Enrollment, Instructor
 
+from .forms import CourseForm
 from .models import Cart, Course, Order
 from .razorpay_client import get_razorpay_client
 
@@ -32,7 +33,93 @@ def _get_instructor(request):
 @login_required(login_url="accounts:login")
 def instructor_dashboard(request):
     instructor = _get_instructor(request)
-    return render(request, "courses/instructor_dashboard.html", {"instructor": instructor})
+    courses = instructor.courses.all().prefetch_related("enrollments")
+    total_courses = courses.count()
+    published_courses = courses.filter(is_published=True).count()
+    total_enrollments = sum(c.enrollments.count() for c in courses)
+    return render(
+        request,
+        "courses/instructor_dashboard.html",
+        {
+            "instructor": instructor,
+            "courses": courses,
+            "total_courses": total_courses,
+            "published_courses": published_courses,
+            "total_enrollments": total_enrollments,
+        },
+    )
+
+
+@login_required(login_url="accounts:login")
+def add_course(request):
+    instructor = _get_instructor(request)
+    if request.method == "POST":
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            course = form.save(commit=False)
+            course.instructor = instructor
+            course.save()
+            messages.success(request, f"Course '{course.title}' has been successfully created!")
+            return redirect("courses:instructor_dashboard")
+    else:
+        form = CourseForm()
+
+    return render(
+        request,
+        "courses/course_form.html",
+        {
+            "form": form,
+            "is_edit": False,
+            "page_title": "Create a New Course",
+            "instructor": instructor,
+        },
+    )
+
+
+@login_required(login_url="accounts:login")
+def edit_course(request, pk):
+    instructor = _get_instructor(request)
+    course = get_object_or_404(Course, pk=pk, instructor=instructor)
+    if request.method == "POST":
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Course '{course.title}' has been updated.")
+            return redirect("courses:instructor_dashboard")
+    else:
+        form = CourseForm(instance=course)
+
+    return render(
+        request,
+        "courses/course_form.html",
+        {
+            "form": form,
+            "course": course,
+            "is_edit": True,
+            "page_title": f"Edit Course: {course.title}",
+            "instructor": instructor,
+        },
+    )
+
+
+@login_required(login_url="accounts:login")
+@require_http_methods(["GET", "POST"])
+def delete_course(request, pk):
+    instructor = _get_instructor(request)
+    course = get_object_or_404(Course, pk=pk, instructor=instructor)
+
+    if request.method == "POST":
+        course_title = course.title
+        course.delete()
+        messages.success(request, f"Course '{course_title}' has been deleted.")
+        return redirect("courses:instructor_dashboard")
+
+    return render(
+        request,
+        "courses/course_confirm_delete.html",
+        {"course": course},
+    )
+
 
 
 @login_required(login_url="accounts:login")

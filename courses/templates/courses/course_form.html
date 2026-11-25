@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page_title }} | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background: #f4f7fb;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem max(1.25rem, calc((100% - 900px) / 2));
+            background: #fff;
+            border-bottom: 1px solid #e3e9f2;
+        }
+        .brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #172033;
+            text-decoration: none;
+        }
+        header nav {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+        a {
+            color: #2457c5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2.5rem 1.25rem 4rem;
+        }
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            margin: 0 0 0.5rem;
+            font-size: 1.75rem;
+            color: #172033;
+        }
+        .page-header p {
+            margin: 0;
+            color: #607087;
+            font-size: 0.95rem;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e3e9f2;
+            border-radius: 0.85rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1.25rem;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+            margin-bottom: 1.25rem;
+        }
+        label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #2c384a;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 0.9rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.55rem;
+            font: inherit;
+            font-size: 0.95rem;
+            color: #172033;
+            background: #fff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #2457c5;
+            box-shadow: 0 0 0 3px rgba(36, 87, 197, 0.15);
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.55rem;
+            cursor: pointer;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: #2457c5;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .help-text {
+            font-size: 0.8rem;
+            color: #607087;
+            margin-top: 0.25rem;
+        }
+        .field-error {
+            color: #dc2626;
+            font-size: 0.82rem;
+            margin-top: 0.25rem;
+        }
+        .messages {
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.6rem;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e3e9f2;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.55rem;
+            font: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .btn-primary {
+            background: #2457c5;
+            color: #fff;
+            border: 1px solid transparent;
+        }
+        .btn-primary:hover {
+            background: #1c47a3;
+            text-decoration: none;
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background: #f8fafc;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'courses:course_list' %}" class="brand">CourseSphere</a>
+        <nav aria-label="Instructor navigation">
+            <a href="{% url 'courses:instructor_dashboard' %}">Dashboard</a>
+            <a href="{% url 'courses:course_list' %}">Explore Courses</a>
+            <a href="{% url 'accounts:dashboard' %}">My Profile</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <h1>{{ page_title }}</h1>
+            <p>Fill out the details below to {% if is_edit %}update your{% else %}add a new{% endif %} course.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="messages">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="form-group full-width">
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="field-error">{{ form.title.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="field-error">{{ form.category.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.level.id_for_label }}">{{ form.level.label }}</label>
+                        {{ form.level }}
+                        {% if form.level.errors %}
+                            <div class="field-error">{{ form.level.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.price.id_for_label }}">{{ form.price.label }}</label>
+                        {{ form.price }}
+                        <div class="help-text">{{ form.price.help_text }}</div>
+                        {% if form.price.errors %}
+                            <div class="field-error">{{ form.price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" style="justify-content: flex-end;">
+                        <label class="checkbox-group">
+                            {{ form.is_published }}
+                            <span>{{ form.is_published.label }}</span>
+                        </label>
+                        <div class="help-text">{{ form.is_published.help_text }}</div>
+                        {% if form.is_published.errors %}
+                            <div class="field-error">{{ form.is_published.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="field-error">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'courses:instructor_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if is_edit %}Save Changes{% else %}Create Course{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

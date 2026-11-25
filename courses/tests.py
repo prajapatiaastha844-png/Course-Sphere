@@ -174,6 +174,219 @@ class CourseModelTests(TestCase):
             course.full_clean()
 
 
+class InstructorCourseViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="instructor@example.com",
+            email="instructor@example.com",
+            password="StrongPassword-2026!",
+        )
+        self.instructor = Instructor.objects.create(
+            user=self.user,
+            name="Instructor Example",
+            email=self.user.email,
+            employee_id="IN-COURSE-001",
+            specialization="Technology",
+        )
+        self.client.force_login(self.user)
+        self.add_url = reverse("courses:add_course")
+        self.course = Course.objects.create(
+            title="Course to Manage",
+            category="Technology",
+            price=Decimal("25.00"),
+            level=Course.Level.BEGINNER,
+            description="A course for update and delete tests.",
+            instructor=self.instructor,
+        )
+
+    def test_instructor_can_create_course_and_view_it_on_dashboard(self):
+        response = self.client.post(
+            self.add_url,
+            {
+                "title": "Python Fundamentals",
+                "category": "Programming",
+                "price": "49.99",
+                "level": Course.Level.BEGINNER,
+                "description": "Learn Python from the ground up.",
+                "is_published": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("courses:instructor_dashboard"))
+        course = Course.objects.get(title="Python Fundamentals")
+        self.assertEqual(course.instructor, self.instructor)
+        self.assertEqual(course.price, Decimal("49.99"))
+        self.assertEqual(course.level, Course.Level.BEGINNER)
+        self.assertTrue(course.is_published)
+
+        dashboard = self.client.get(reverse("courses:instructor_dashboard"))
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertContains(dashboard, course.title)
+        self.assertContains(dashboard, "Add New Course")
+
+    def test_dashboard_displays_all_and_only_the_instructors_courses(self):
+        another_course = Course.objects.create(
+            title="Another Instructor Course",
+            category="Technology",
+            price=Decimal("10.00"),
+            description="A second course belonging to this instructor.",
+            instructor=self.instructor,
+        )
+        other_user = get_user_model().objects.create_user(
+            username="dashboard-other-instructor@example.com",
+            password="StrongPassword-2026!",
+        )
+        other_instructor = Instructor.objects.create(
+            user=other_user,
+            name="Other Instructor",
+            email=other_user.email,
+            employee_id="IN-DASHBOARD-002",
+            specialization="Science",
+        )
+        other_course = Course.objects.create(
+            title="Not This Instructors Course",
+            category="Science",
+            price=Decimal("20.00"),
+            description="A course belonging to another instructor.",
+            is_published=True,
+            instructor=other_instructor,
+        )
+
+        response = self.client.get(reverse("courses:instructor_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {course.pk for course in response.context["courses"]},
+            {self.course.pk, another_course.pk},
+        )
+        self.assertContains(response, self.course.title)
+        self.assertContains(response, another_course.title)
+        self.assertNotContains(response, other_course.title)
+
+    def test_instructor_cannot_create_course_with_negative_price(self):
+        response = self.client.post(
+            self.add_url,
+            {
+                "title": "Invalid Course",
+                "category": "Programming",
+                "price": "-1.00",
+                "level": Course.Level.BEGINNER,
+                "description": "This course has an invalid price.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Course price cannot be negative.")
+        self.assertFalse(Course.objects.filter(title="Invalid Course").exists())
+
+    def test_user_without_instructor_profile_cannot_add_course(self):
+        student_user = get_user_model().objects.create_user(
+            username="student@example.com",
+            password="StrongPassword-2026!",
+        )
+        self.client.force_login(student_user)
+
+        response = self.client.get(self.add_url)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_instructor_can_update_their_course(self):
+        response = self.client.post(
+            reverse("courses:edit_course", kwargs={"pk": self.course.pk}),
+            {
+                "title": "Updated Course",
+                "category": "Programming",
+                "price": "39.99",
+                "level": Course.Level.ADVANCED,
+                "description": "Updated course description.",
+                "is_published": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("courses:instructor_dashboard"))
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.title, "Updated Course")
+        self.assertEqual(self.course.category, "Programming")
+        self.assertEqual(self.course.price, Decimal("39.99"))
+        self.assertEqual(self.course.level, Course.Level.ADVANCED)
+        self.assertEqual(self.course.description, "Updated course description.")
+        self.assertTrue(self.course.is_published)
+
+    def test_instructor_cannot_update_another_instructors_course(self):
+        other_user = get_user_model().objects.create_user(
+            username="other-instructor@example.com",
+            password="StrongPassword-2026!",
+        )
+        other_instructor = Instructor.objects.create(
+            user=other_user,
+            name="Other Instructor",
+            email=other_user.email,
+            employee_id="IN-COURSE-002",
+            specialization="Science",
+        )
+        other_course = Course.objects.create(
+            title="Other Instructor Course",
+            category="Science",
+            price=Decimal("15.00"),
+            description="This course belongs to another instructor.",
+            instructor=other_instructor,
+        )
+
+        response = self.client.post(
+            reverse("courses:edit_course", kwargs={"pk": other_course.pk}),
+            {"title": "Unauthorized Update"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        other_course.refresh_from_db()
+        self.assertEqual(other_course.title, "Other Instructor Course")
+
+    def test_instructor_must_confirm_before_deleting_their_course(self):
+        response = self.client.get(
+            reverse("courses:delete_course", kwargs={"pk": self.course.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "courses/course_confirm_delete.html")
+        self.assertContains(response, self.course.title)
+        self.assertTrue(Course.objects.filter(pk=self.course.pk).exists())
+
+    def test_instructor_can_delete_their_course_with_post(self):
+        response = self.client.post(
+            reverse("courses:delete_course", kwargs={"pk": self.course.pk})
+        )
+
+        self.assertRedirects(response, reverse("courses:instructor_dashboard"))
+        self.assertFalse(Course.objects.filter(pk=self.course.pk).exists())
+
+    def test_instructor_cannot_delete_another_instructors_course(self):
+        other_user = get_user_model().objects.create_user(
+            username="other-delete-instructor@example.com",
+            password="StrongPassword-2026!",
+        )
+        other_instructor = Instructor.objects.create(
+            user=other_user,
+            name="Other Instructor",
+            email=other_user.email,
+            employee_id="IN-COURSE-003",
+            specialization="Science",
+        )
+        other_course = Course.objects.create(
+            title="Protected Course",
+            category="Science",
+            price=Decimal("15.00"),
+            description="This course must not be deleted.",
+            instructor=other_instructor,
+        )
+
+        response = self.client.post(
+            reverse("courses:delete_course", kwargs={"pk": other_course.pk})
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Course.objects.filter(pk=other_course.pk).exists())
+
+
 class CourseListViewTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(

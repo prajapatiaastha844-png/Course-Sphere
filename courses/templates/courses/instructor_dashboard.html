@@ -1,46 +1,99 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Instructor Dashboard | CourseSphere</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            color: #172033;
+            background: #f4f7fb;
+            font-family: Arial, sans-serif;
+        }
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+        th, td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #e3e9f2;
+            text-align: left;
+        }
+        .btn {
+            display: inline-block;
+            margin-right: 0.4rem;
+            padding: 0.55rem 0.8rem;
+            border-radius: 0.4rem;
+            color: #fff;
+            background: #2457c5;
+            text-decoration: none;
+        }
+        .btn-success {
+            margin-top: 1rem;
+            background: #16834a;
+        }
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+            table {
+                font-size: 0.85rem;
+            }
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Instructor Dashboard</h1>
 
-{% block title %}Instructor Dashboard{% endblock %}
+    <p>Welcome, {{ instructor.name }} ({{ instructor.email }})</p>
 
-{% block content %}
-<h1>Instructor Dashboard</h1>
+    <h2>Your Courses</h2>
+    {% if courses %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Level</th>
+                <th>Price</th>
+                <th>Enrolled Students</th>
+                <th>Published</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td>{{ course.title }}</td>
+                <td>{{ course.category }}</td>
+                <td>{{ course.get_level_display }}</td>
+                <td>₹{{ course.price }}</td>
+                <td>{{ course.enrollments.count }}</td>
+                <td>{% if course.is_published %}Yes{% else %}No{% endif %}</td>
+                <td>
+                    <a href="{% url 'courses:edit_course' pk=course.pk %}" class="btn">Edit</a>
+                    <a href="{% url 'courses:delete_course' pk=course.pk %}" class="btn">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You haven't created any courses yet.</p>
+    {% endif %}
 
-<p>Welcome, {{ instructor.name }} ({{ instructor.email }})</p>
-
-<h2>Your Courses</h2>
-{% if instructor.courses.all %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Level</th>
-            <th>Price</th>
-            <th>Enrolled Students</th>
-            <th>Published</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for course in instructor.courses.all %}
-        <tr>
-            <td>{{ course.title }}</td>
-            <td>{{ course.category }}</td>
-            <td>{{ course.get_level_display }}</td>
-            <td>₹{{ course.price }}</td>
-            <td>{{ course.enrollments.count }}</td>
-            <td>{% if course.is_published %}Yes{% else %}No{% endif %}</td>
-            <td>
-                <a href="{% url 'courses:course_detail' pk=course.pk %}" class="btn btn-sm btn-primary">View</a>
-                <a href="{% url 'courses:edit_course' pk=course.pk %}" class="btn btn-sm btn-secondary">Edit</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>You haven't created any courses yet.</p>
-{% endif %}
-
-<a href="{% url 'courses:add_course' %}" class="btn btn-success mt-3">Add New Course</a>
-{% endblock %}
+    <a href="{% url 'courses:add_course' %}" class="btn btn-success">Add New Course</a>
+</main>
+</body>
+</html>

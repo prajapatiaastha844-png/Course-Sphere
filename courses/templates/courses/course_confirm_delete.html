@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Delete Course | CourseSphere</title>
+</head>
+<body>
+    <main>
+        <h1>Delete Course</h1>
+        <p>Are you sure you want to delete “{{ course.title }}”?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Delete Course</button>
+            <a href="{% url 'courses:instructor_dashboard' %}">Cancel</a>
+        </form>
+    </main>
+</body>
+</html>
