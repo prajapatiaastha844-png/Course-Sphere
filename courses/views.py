@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import DatabaseError
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,7 +14,7 @@ import razorpay
 
 from accounts.models import Student, Enrollment, Instructor
 
-from .forms import CourseForm
+from .forms import CourseContentForm, CourseForm
 from .models import Cart, Course, Order
 from .razorpay_client import get_razorpay_client
 
@@ -56,11 +57,17 @@ def add_course(request):
     if request.method == "POST":
         form = CourseForm(request.POST)
         if form.is_valid():
-            course = form.save(commit=False)
-            course.instructor = instructor
-            course.save()
-            messages.success(request, f"Course '{course.title}' has been successfully created!")
-            return redirect("courses:instructor_dashboard")
+            try:
+                course = form.save(commit=False)
+                course.instructor = instructor
+                course.save()
+            except DatabaseError:
+                messages.error(request, "Could not create the course. Please try again.")
+            else:
+                messages.success(request, f"Course '{course.title}' has been successfully created!")
+                return redirect("courses:instructor_dashboard")
+        else:
+            messages.error(request, "Could not create the course. Please correct the errors below.")
     else:
         form = CourseForm()
 
@@ -83,9 +90,15 @@ def edit_course(request, pk):
     if request.method == "POST":
         form = CourseForm(request.POST, instance=course)
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Course '{course.title}' has been updated.")
-            return redirect("courses:instructor_dashboard")
+            try:
+                form.save()
+            except DatabaseError:
+                messages.error(request, "Could not update the course. Please try again.")
+            else:
+                messages.success(request, f"Course '{course.title}' has been updated.")
+                return redirect("courses:instructor_dashboard")
+        else:
+            messages.error(request, "Could not update the course. Please correct the errors below.")
     else:
         form = CourseForm(instance=course)
 
@@ -110,14 +123,42 @@ def delete_course(request, pk):
 
     if request.method == "POST":
         course_title = course.title
-        course.delete()
-        messages.success(request, f"Course '{course_title}' has been deleted.")
-        return redirect("courses:instructor_dashboard")
+        try:
+            course.delete()
+        except DatabaseError:
+            messages.error(request, f"Could not delete course '{course_title}'. Please try again.")
+        else:
+            messages.success(request, f"Course '{course_title}' has been deleted.")
+            return redirect("courses:instructor_dashboard")
 
     return render(
         request,
         "courses/course_confirm_delete.html",
         {"course": course},
+    )
+
+
+@login_required(login_url="accounts:login")
+def add_course_content(request, pk):
+    instructor = _get_instructor(request)
+    course = get_object_or_404(Course, pk=pk, instructor=instructor)
+
+    if request.method == "POST":
+        form = CourseContentForm(request.POST, request.FILES)
+        if form.is_valid():
+            course_content = form.save(commit=False)
+            course_content.course = course
+            course_content.save()
+            messages.success(request, f"Content '{course_content.title}' was added to '{course.title}'.")
+            return redirect("courses:instructor_dashboard")
+        messages.error(request, "Could not add course content. Please correct the errors below.")
+    else:
+        form = CourseContentForm()
+
+    return render(
+        request,
+        "courses/course_content_form.html",
+        {"course": course, "form": form},
     )
 
 

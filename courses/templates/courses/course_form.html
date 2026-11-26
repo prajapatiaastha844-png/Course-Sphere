@@ -213,6 +213,14 @@
             <p>Fill out the details below to {% if is_edit %}update your{% else %}add a new{% endif %} course.</p>
         </div>
 
+        {% if messages %}
+            <div class="messages" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <p class="{{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% if form.non_field_errors %}
             <div class="messages">
                 {% for error in form.non_field_errors %}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Course Content | CourseSphere</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            color: #172033;
+            background: #f4f7fb;
+            font-family: Arial, sans-serif;
+        }
+        main {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 0.6rem;
+        }
+        .field {
+            margin-bottom: 1rem;
+        }
+        .field label {
+            display: block;
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+        }
+        .form-control {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0.65rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.35rem;
+            font: inherit;
+        }
+        .errorlist, .message.error {
+            color: #991b1b;
+        }
+        .message {
+            padding: 0.75rem;
+            background: #fee2e2;
+            border-radius: 0.35rem;
+        }
+        button, .back-link {
+            display: inline-block;
+            padding: 0.65rem 0.9rem;
+            border: 0;
+            border-radius: 0.35rem;
+            color: #fff;
+            background: #2457c5;
+            font: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .back-link {
+            color: #334155;
+            background: #e2e8f0;
+        }
+        .help {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Add Content</h1>
+    <p>Course: {{ course.title }}</p>
+
+    {% if messages %}
+        {% for message in messages %}
+        <p class="message {{ message.tags }}" role="status">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="field">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+            {{ field.errors }}
+        </div>
+        {% endfor %}
+        <button type="submit">Save Content</button>
+        <a class="back-link" href="{% url 'courses:instructor_dashboard' %}">Back to dashboard</a>
+    </form>
+</main>
+</body>
+</html>

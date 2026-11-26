@@ -1,14 +1,16 @@
 from decimal import Decimal
+from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
 import razorpay
 
 from accounts.models import Instructor, Student
-from .models import Cart, Course, Order
+from .models import Cart, Course, CourseContent, Order
 
 
 class CartModelTests(TestCase):
@@ -173,6 +175,29 @@ class CourseModelTests(TestCase):
         with self.assertRaises(ValidationError):
             course.full_clean()
 
+    def test_course_content_links_to_course_and_is_deleted_with_it(self):
+        course = Course.objects.create(
+            title="Course With Content",
+            category="Technology",
+            price=Decimal("10.00"),
+            description="A course with lesson content.",
+        )
+        content = CourseContent.objects.create(
+            course=course,
+            title="Introduction",
+            content="Welcome to the course.",
+            video_url="https://example.com/intro",
+            position=1,
+        )
+
+        self.assertEqual(course.contents.get(), content)
+        self.assertEqual(str(content), "Course With Content - Introduction")
+        self.assertEqual(content.video_url, "https://example.com/intro")
+        self.assertEqual(content.position, 1)
+
+        course.delete()
+        self.assertFalse(CourseContent.objects.filter(pk=content.pk).exists())
+
 
 class InstructorCourseViewTests(TestCase):
     def setUp(self):
@@ -263,6 +288,63 @@ class InstructorCourseViewTests(TestCase):
         self.assertContains(response, another_course.title)
         self.assertNotContains(response, other_course.title)
 
+    def test_instructor_can_add_notes_file_and_video_url_to_their_course(self):
+        notes_file = SimpleUploadedFile(
+            "python-notes.txt",
+            b"Python notes",
+            content_type="text/plain",
+        )
+        content_url = reverse(
+            "courses:add_course_content",
+            kwargs={"pk": self.course.pk},
+        )
+
+        with TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.post(
+                    content_url,
+                    {
+                        "title": "Python Introduction",
+                        "content": "",
+                        "notes_file": notes_file,
+                        "video_url": "https://example.com/python",
+                        "position": 1,
+                    },
+                )
+
+        self.assertRedirects(response, reverse("courses:instructor_dashboard"))
+        content = CourseContent.objects.get(title="Python Introduction")
+        self.assertEqual(content.course, self.course)
+        self.assertEqual(content.video_url, "https://example.com/python")
+        self.assertEqual(content.position, 1)
+        self.assertTrue(content.notes_file.name.endswith("python-notes.txt"))
+
+    def test_instructor_cannot_add_content_to_another_instructors_course(self):
+        other_user = get_user_model().objects.create_user(
+            username="content-other-instructor@example.com",
+            password="StrongPassword-2026!",
+        )
+        other_instructor = Instructor.objects.create(
+            user=other_user,
+            name="Other Instructor",
+            email=other_user.email,
+            employee_id="IN-CONTENT-002",
+            specialization="Science",
+        )
+        other_course = Course.objects.create(
+            title="Protected Content Course",
+            category="Science",
+            price=Decimal("10.00"),
+            description="A course owned by another instructor.",
+            instructor=other_instructor,
+        )
+
+        response = self.client.get(
+            reverse("courses:add_course_content", kwargs={"pk": other_course.pk})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
     def test_instructor_cannot_create_course_with_negative_price(self):
         response = self.client.post(
             self.add_url,
@@ -277,6 +359,7 @@ class InstructorCourseViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Course price cannot be negative.")
+        self.assertContains(response, "Could not create the course")
         self.assertFalse(Course.objects.filter(title="Invalid Course").exists())
 
     def test_user_without_instructor_profile_cannot_add_course(self):

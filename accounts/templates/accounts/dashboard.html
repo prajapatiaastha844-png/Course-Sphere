@@ -404,11 +404,6 @@
                     </p>
                 {% endif %}
             </section>
-        {% elif role == "Admin" %}
-            <section class="card admin-note">
-                <h2>Administrator account</h2>
-                <p class="card-copy">You are signed in with an administrator profile.</p>
-            </section>
         {% else %}
             <section class="card admin-note">
                 <h2>Account overview</h2>
@@ -416,11 +411,6 @@
             </section>
         {% endif %}
 
-        {% if request.user.is_staff and role != "Admin" %}
-            <p class="admin-note">
-                <a href="{% url 'accounts:register' role='admin' %}">Create admin profile</a>
-            </p>
-        {% endif %}
     </main>
 </body>
 </html>

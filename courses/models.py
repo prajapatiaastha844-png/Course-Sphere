@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
@@ -44,6 +44,26 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CourseContent(models.Model):
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="contents",
+    )
+    title = models.CharField(max_length=200)
+    content = models.TextField(blank=True)
+    video_url = models.URLField(blank=True)
+    notes_file = models.FileField(
+        upload_to="course_content/notes/",
+        blank=True,
+        validators=[FileExtensionValidator(["pdf", "doc", "docx", "txt"])],
+    )
+    position = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.course.title} - {self.title}"
 
 
 class Cart(models.Model):

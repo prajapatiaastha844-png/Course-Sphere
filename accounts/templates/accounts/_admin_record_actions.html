@@ -1,0 +1,13 @@
+<div class="record-actions">
+    {% if section != "users" or not record.is_superuser or request.user.is_superuser %}
+        <a href="{% url 'accounts:admin_record' section=section pk=record.pk %}">View</a>
+        <a href="{% url 'accounts:admin_record_edit' section=section pk=record.pk %}">Edit</a>
+        {% if section == "students" or section == "instructors" %}
+            {% if record.user_id != request.user.pk %}
+                <a class="delete-action" href="{% url 'accounts:admin_record_delete' section=section pk=record.pk %}">Delete</a>
+            {% endif %}
+        {% elif section != "users" or record.pk != request.user.pk %}
+            <a class="delete-action" href="{% url 'accounts:admin_record_delete' section=section pk=record.pk %}">Delete</a>
+        {% endif %}
+    {% endif %}
+</div>

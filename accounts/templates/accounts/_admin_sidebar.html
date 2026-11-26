@@ -1,0 +1,29 @@
+<aside class="sidebar">
+    <a class="brand" href="{% url 'accounts:dashboard' %}">
+        <span class="brand-mark" aria-hidden="true">CS</span>
+        <span>CourseSphere</span>
+    </a>
+
+    <p class="nav-label">Workspace</p>
+    <nav class="nav-links" aria-label="Dashboard navigation">
+        <a{% if active_section == "overview" %} class="active"{% endif %} href="{% url 'accounts:dashboard' %}">Overview</a>
+        <a{% if active_section == "users" %} class="active"{% endif %} href="{% url 'accounts:admin_section' section='users' %}">Users</a>
+    </nav>
+
+    <p class="nav-label">Course management</p>
+    <nav class="nav-links" aria-label="Course management">
+        <a{% if active_section == "students" %} class="active"{% endif %} href="{% url 'accounts:admin_section' section='students' %}">Students</a>
+        <a{% if active_section == "instructors" %} class="active"{% endif %} href="{% url 'accounts:admin_section' section='instructors' %}">Instructors</a>
+        <a{% if active_section == "courses" %} class="active"{% endif %} href="{% url 'accounts:admin_section' section='courses' %}">Courses</a>
+        <a{% if active_section == "orders" %} class="active"{% endif %} href="{% url 'accounts:admin_section' section='orders' %}">Orders</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+        <div class="account-name">{{ profile.name|default:request.user.get_username }}</div>
+        <div class="account-role">Administrator</div>
+        <form class="logout-form" method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button class="logout-button" type="submit">Log out</button>
+        </form>
+    </div>
+</aside>

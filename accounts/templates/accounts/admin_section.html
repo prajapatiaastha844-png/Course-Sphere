@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ section_title }} | CourseSphere Admin</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f5f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        button,
+        input {
+            font: inherit;
+        }
+        .dashboard-layout {
+            display: grid;
+            min-height: 100vh;
+            grid-template-columns: 248px minmax(0, 1fr);
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            background: #172033;
+            color: #d7deeb;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.25rem 0.75rem 1.8rem;
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        .brand-mark {
+            display: grid;
+            width: 2.4rem;
+            height: 2.4rem;
+            place-items: center;
+            border-radius: 0.7rem;
+            background: #4c75e8;
+            color: #fff;
+            font-size: 0.82rem;
+        }
+        .nav-label {
+            margin: 1rem 0 0.55rem;
+            padding: 0 0.75rem;
+            color: #8e9bb1;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .nav-links {
+            display: grid;
+            gap: 0.3rem;
+        }
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            min-height: 2.65rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 0.6rem;
+            color: #c1cad9;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: #293650;
+            color: #fff;
+        }
+        .nav-links a.active {
+            box-shadow: inset 3px 0 #7090ff;
+        }
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 1rem 0.75rem 0;
+            border-top: 1px solid #303c52;
+        }
+        .account-name {
+            overflow: hidden;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .account-role {
+            margin-top: 0.35rem;
+            color: #9eabc0;
+            font-size: 0.78rem;
+        }
+        .logout-form {
+            margin-top: 1rem;
+        }
+        .logout-button {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid #45516a;
+            border-radius: 0.55rem;
+            background: transparent;
+            color: #e2e8f0;
+            cursor: pointer;
+            text-align: left;
+        }
+        .logout-button:hover {
+            background: #293650;
+        }
+        .main-content {
+            width: min(100%, 1500px);
+            margin: 0 auto;
+            padding: 2rem clamp(1.25rem, 3vw, 3rem) 3rem;
+        }
+        .message-list {
+            display: grid;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+        .flash-message {
+            margin: 0;
+            padding: 0.8rem 1rem;
+            border: 1px solid #b9e3cb;
+            border-radius: 0.6rem;
+            background: #e8f7ef;
+            color: #167347;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+        .breadcrumb,
+        .topbar-date {
+            color: #78859a;
+            font-size: 0.86rem;
+        }
+        .page-heading {
+            margin: 0;
+            font-size: clamp(1.8rem, 3vw, 2.3rem);
+            letter-spacing: -0.04em;
+        }
+        .page-description {
+            margin: 0.6rem 0 0;
+            color: #78859a;
+            line-height: 1.55;
+        }
+        .page-heading-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .add-button {
+            flex: 0 0 auto;
+            padding: 0.75rem 1rem;
+            border-radius: 0.6rem;
+            background: #365bc4;
+            color: #fff;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+        .add-button:hover {
+            background: #28499f;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 1.5rem 0 0.8rem;
+        }
+        .record-count {
+            color: #78859a;
+            font-size: 0.84rem;
+        }
+        .search-form {
+            display: flex;
+            width: min(100%, 420px);
+            gap: 0.55rem;
+        }
+        .search-input {
+            min-width: 0;
+            flex: 1;
+            padding: 0.72rem 0.85rem;
+            border: 1px solid #dce2ec;
+            border-radius: 0.6rem;
+            background: #fff;
+            color: #172033;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: #5276de;
+            box-shadow: 0 0 0 3px rgb(82 118 222 / 13%);
+        }
+        .search-button {
+            padding: 0.72rem 1rem;
+            border: 0;
+            border-radius: 0.6rem;
+            background: #365bc4;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .search-button:hover {
+            background: #28499f;
+        }
+        .clear-search {
+            align-self: center;
+            color: #365bc4;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        .table-card {
+            overflow: hidden;
+            border: 1px solid #e5e9f1;
+            border-radius: 0.85rem;
+            background: #fff;
+            box-shadow: 0 5px 18px rgb(23 32 51 / 3%);
+        }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th,
+        td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #edf0f5;
+            vertical-align: middle;
+        }
+        th {
+            background: #fafbfc;
+            color: #78859a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        td {
+            color: #46536a;
+            font-size: 0.86rem;
+        }
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+        .primary-cell {
+            color: #202c41;
+            font-weight: 700;
+        }
+        .secondary-cell {
+            display: block;
+            margin-top: 0.25rem;
+            color: #8792a4;
+            font-size: 0.78rem;
+            font-weight: 400;
+        }
+        .actions-cell {
+            min-width: 195px;
+        }
+        .record-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .record-actions a {
+            padding: 0.4rem 0.55rem;
+            border: 1px solid #dce2ec;
+            border-radius: 0.45rem;
+            color: #365bc4;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .record-actions a:hover {
+            background: #eef2ff;
+        }
+        .record-actions .delete-action {
+            border-color: #f0d1cf;
+            color: #a43b35;
+        }
+        .record-actions .delete-action:hover {
+            background: #fff0ef;
+        }
+        .status {
+            display: inline-flex;
+            padding: 0.32rem 0.55rem;
+            border-radius: 999px;
+            background: #f1f3f6;
+            color: #596579;
+            font-size: 0.73rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .status.success,
+        .status.active,
+        .status.published {
+            background: #e8f7ef;
+            color: #167347;
+        }
+        .status.pending {
+            background: #fff5df;
+            color: #946200;
+        }
+        .status.failed,
+        .status.inactive,
+        .status.draft {
+            background: #fff0ef;
+            color: #a43b35;
+        }
+        .empty-cell {
+            padding: 2.5rem 1rem;
+            color: #78859a;
+            text-align: center;
+        }
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1rem;
+            color: #78859a;
+            font-size: 0.84rem;
+        }
+        .page-links {
+            display: flex;
+            gap: 0.45rem;
+        }
+        .page-links a {
+            padding: 0.55rem 0.75rem;
+            border: 1px solid #dce2ec;
+            border-radius: 0.55rem;
+            background: #fff;
+            color: #365bc4;
+            font-weight: 700;
+        }
+        .page-links a:hover {
+            background: #eef2ff;
+        }
+        @media (max-width: 800px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                padding: 0.8rem 1rem;
+            }
+            .brand {
+                padding: 0.2rem 0.25rem 0.8rem;
+            }
+            .nav-label,
+            .sidebar-bottom {
+                display: none;
+            }
+            .nav-links {
+                display: flex;
+                overflow-x: auto;
+                gap: 0.35rem;
+            }
+            .nav-links a {
+                flex: 0 0 auto;
+                min-height: 2.35rem;
+                padding: 0.55rem 0.7rem;
+                font-size: 0.82rem;
+            }
+            .nav-links a.active {
+                box-shadow: inset 0 -2px #7090ff;
+            }
+            .main-content {
+                padding-top: 1.4rem;
+            }
+        }
+        @media (max-width: 600px) {
+            .toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .search-form {
+                width: 100%;
+            }
+            .pagination {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            th,
+            td {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        {% include "accounts/_admin_sidebar.html" %}
+
+        <main class="main-content">
+            {% include "accounts/_admin_messages.html" %}
+            <header class="topbar">
+                <div class="breadcrumb">
+                    <a href="{% url 'accounts:dashboard' %}">Workspace</a> /
+                    <strong>{{ section_title }}</strong>
+                </div>
+                <div class="topbar-date">{% now "D, M j, Y" %}</div>
+            </header>
+
+            <section class="page-heading-row" aria-labelledby="section-heading">
+                <div>
+                    <h1 class="page-heading" id="section-heading">{{ section_title }}</h1>
+                    <p class="page-description">{{ section_description }}</p>
+                </div>
+                <a class="add-button" href="{% url 'accounts:admin_add' section=active_section %}">+ Add {{ add_label }}</a>
+            </section>
+
+            <div class="toolbar">
+                <span class="record-count">
+                    {{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}
+                </span>
+                <form class="search-form" method="get" action="{% url 'accounts:admin_section' section=active_section %}">
+                    <input
+                        class="search-input"
+                        type="search"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Search {{ section_title|lower }}..."
+                        aria-label="Search {{ section_title|lower }}"
+                    >
+                    <button class="search-button" type="submit">Search</button>
+                    {% if search_query %}
+                        <a class="clear-search" href="{% url 'accounts:admin_section' section=active_section %}">Clear</a>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="table-card table-scroll">
+                <table>
+                    {% if active_section == "users" %}
+                        <thead>
+                            <tr><th>Username</th><th>Email</th><th>Access</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in page_obj %}
+                                <tr>
+                                    <td class="primary-cell">{{ record.username }}</td>
+                                    <td>{{ record.email|default:"—" }}</td>
+                                    <td>
+                                        {% if record.is_superuser %}Superuser
+                                        {% elif record.is_staff %}Staff
+                                        {% else %}User{% endif %}
+                                    </td>
+                                    <td><span class="status{% if record.is_active %} active{% else %} inactive{% endif %}">{{ record.is_active|yesno:"Active,Inactive" }}</span></td>
+                                    <td>{{ record.date_joined|date:"M j, Y" }}</td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=record section=active_section %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-cell" colspan="6">No users match this search.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    {% elif active_section == "students" %}
+                        <thead>
+                            <tr><th>Student</th><th>Student ID</th><th>Email</th><th>Enrolled since</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in page_obj %}
+                                <tr>
+                                    <td class="primary-cell">{{ record.name }}</td>
+                                    <td>{{ record.student_id }}</td>
+                                    <td>{{ record.email }}</td>
+                                    <td>{{ record.enrollment_date|date:"M j, Y" }}</td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=record section=active_section %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-cell" colspan="5">No students match this search.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    {% elif active_section == "instructors" %}
+                        <thead>
+                            <tr><th>Instructor</th><th>Employee ID</th><th>Email</th><th>Specialization</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in page_obj %}
+                                <tr>
+                                    <td class="primary-cell">{{ record.name }}</td>
+                                    <td>{{ record.employee_id }}</td>
+                                    <td>{{ record.email }}</td>
+                                    <td>{{ record.specialization }}</td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=record section=active_section %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-cell" colspan="5">No instructors match this search.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    {% elif active_section == "courses" %}
+                        <thead>
+                            <tr><th>Course</th><th>Instructor</th><th>Category</th><th>Level</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in page_obj %}
+                                <tr>
+                                    <td class="primary-cell">{{ record.title }}</td>
+                                    <td>{{ record.instructor.name|default:"Unassigned" }}</td>
+                                    <td>{{ record.category }}</td>
+                                    <td>{{ record.get_level_display }}</td>
+                                    <td>₹{{ record.price|floatformat:2 }}</td>
+                                    <td><span class="status{% if record.is_published %} published{% else %} draft{% endif %}">{{ record.is_published|yesno:"Published,Draft" }}</span></td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=record section=active_section %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-cell" colspan="7">No courses match this search.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    {% else %}
+                        <thead>
+                            <tr><th>Order</th><th>Student</th><th>Courses</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in page_obj %}
+                                <tr>
+                                    <td class="primary-cell">#{{ record.pk }}</td>
+                                    <td>
+                                        {{ record.student.name }}
+                                        <span class="secondary-cell">{{ record.student.email }}</span>
+                                    </td>
+                                    <td>
+                                        {% for course in record.courses.all %}
+                                            {{ course.title }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            —
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ record.currency }} {{ record.total_amount|floatformat:2 }}</td>
+                                    <td><span class="status {{ record.status }}">{{ record.get_status_display }}</span></td>
+                                    <td>{{ record.created_at|date:"M j, Y" }}</td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=record section=active_section %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-cell" colspan="7">No orders match this search.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    {% endif %}
+                </table>
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+                <nav class="pagination" aria-label="Page navigation">
+                    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    <div class="page-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?q={{ search_query|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a href="?q={{ search_query|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

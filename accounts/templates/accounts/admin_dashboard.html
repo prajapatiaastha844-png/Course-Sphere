@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin dashboard | CourseSphere</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #172033;
+            background: #f5f7fb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        button {
+            font: inherit;
+        }
+        .dashboard-layout {
+            display: grid;
+            min-height: 100vh;
+            grid-template-columns: 248px minmax(0, 1fr);
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            background: #172033;
+            color: #d7deeb;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.25rem 0.75rem 1.8rem;
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        .brand-mark {
+            display: grid;
+            width: 2.4rem;
+            height: 2.4rem;
+            place-items: center;
+            border-radius: 0.7rem;
+            background: #4c75e8;
+            color: #fff;
+            font-size: 0.82rem;
+        }
+        .nav-label {
+            margin: 1rem 0 0.55rem;
+            padding: 0 0.75rem;
+            color: #8e9bb1;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .nav-links {
+            display: grid;
+            gap: 0.3rem;
+        }
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            min-height: 2.65rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 0.6rem;
+            color: #c1cad9;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: #293650;
+            color: #fff;
+        }
+        .nav-links a.active {
+            box-shadow: inset 3px 0 #7090ff;
+        }
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 1rem 0.75rem 0;
+            border-top: 1px solid #303c52;
+        }
+        .account-name {
+            overflow: hidden;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .account-role {
+            margin-top: 0.35rem;
+            color: #9eabc0;
+            font-size: 0.78rem;
+        }
+        .logout-form {
+            margin-top: 1rem;
+        }
+        .logout-button {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid #45516a;
+            border-radius: 0.55rem;
+            background: transparent;
+            color: #e2e8f0;
+            cursor: pointer;
+            text-align: left;
+        }
+        .logout-button:hover {
+            background: #293650;
+        }
+        .main-content {
+            width: min(100%, 1500px);
+            margin: 0 auto;
+            padding: 2rem clamp(1.25rem, 3vw, 3rem) 3rem;
+        }
+        .message-list {
+            display: grid;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+        .flash-message {
+            margin: 0;
+            padding: 0.8rem 1rem;
+            border: 1px solid #b9e3cb;
+            border-radius: 0.6rem;
+            background: #e8f7ef;
+            color: #167347;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+        .breadcrumb {
+            color: #78859a;
+            font-size: 0.86rem;
+        }
+        .topbar-date {
+            color: #78859a;
+            font-size: 0.86rem;
+        }
+        .welcome {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            padding: clamp(1.5rem, 3vw, 2.4rem);
+            border-radius: 1rem;
+            background: linear-gradient(115deg, #244bb1, #5276de);
+            color: #fff;
+            box-shadow: 0 16px 36px rgb(36 75 177 / 18%);
+        }
+        .welcome-copy {
+            max-width: 650px;
+        }
+        .welcome-kicker {
+            margin: 0 0 0.6rem;
+            color: #d6e0ff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .welcome h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            letter-spacing: -0.04em;
+        }
+        .welcome p:last-child {
+            margin: 0.7rem 0 0;
+            color: #e2e9ff;
+            line-height: 1.55;
+        }
+        .welcome-action {
+            flex: 0 0 auto;
+            padding: 0.8rem 1rem;
+            border-radius: 0.65rem;
+            background: #fff;
+            color: #244bb1;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .welcome-action:hover {
+            background: #eef2ff;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+        .stat-card {
+            min-width: 0;
+            padding: 1.25rem;
+            border: 1px solid #e5e9f1;
+            border-radius: 0.85rem;
+            background: #fff;
+            box-shadow: 0 5px 18px rgb(23 32 51 / 3%);
+        }
+        .stat-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .stat-label {
+            margin: 0;
+            color: #6d7a90;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+        .stat-tag {
+            padding: 0.3rem 0.45rem;
+            border-radius: 0.4rem;
+            background: #eef2ff;
+            color: #405fc1;
+            font-size: 0.68rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .stat-value {
+            display: block;
+            overflow: hidden;
+            margin-top: 0.85rem;
+            color: #172033;
+            font-size: clamp(1.45rem, 2vw, 1.9rem);
+            letter-spacing: -0.04em;
+            text-overflow: ellipsis;
+        }
+        .section {
+            margin-top: 2rem;
+        }
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+        }
+        .section-heading h2 {
+            margin: 0;
+            color: #172033;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+        .section-heading p {
+            margin: 0.35rem 0 0;
+            color: #78859a;
+            font-size: 0.84rem;
+        }
+        .view-all {
+            flex: 0 0 auto;
+            color: #365bc4;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+        .table-card {
+            overflow: hidden;
+            border: 1px solid #e5e9f1;
+            border-radius: 0.85rem;
+            background: #fff;
+        }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th,
+        td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #edf0f5;
+            vertical-align: middle;
+        }
+        th {
+            background: #fafbfc;
+            color: #78859a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        td {
+            color: #46536a;
+            font-size: 0.86rem;
+        }
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+        .primary-cell {
+            color: #202c41;
+            font-weight: 700;
+        }
+        .secondary-cell {
+            display: block;
+            margin-top: 0.25rem;
+            color: #8792a4;
+            font-size: 0.78rem;
+            font-weight: 400;
+        }
+        .actions-cell {
+            min-width: 195px;
+        }
+        .record-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .record-actions a {
+            padding: 0.4rem 0.55rem;
+            border: 1px solid #dce2ec;
+            border-radius: 0.45rem;
+            color: #365bc4;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .record-actions a:hover {
+            background: #eef2ff;
+        }
+        .record-actions .delete-action {
+            border-color: #f0d1cf;
+            color: #a43b35;
+        }
+        .record-actions .delete-action:hover {
+            background: #fff0ef;
+        }
+        .status {
+            display: inline-flex;
+            padding: 0.32rem 0.55rem;
+            border-radius: 999px;
+            background: #f1f3f6;
+            color: #596579;
+            font-size: 0.73rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .status.success,
+        .status.published {
+            background: #e8f7ef;
+            color: #167347;
+        }
+        .status.pending {
+            background: #fff5df;
+            color: #946200;
+        }
+        .status.failed,
+        .status.draft {
+            background: #fff0ef;
+            color: #a43b35;
+        }
+        .empty-row {
+            padding: 1.5rem;
+            color: #78859a;
+            text-align: center;
+        }
+        .split-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+        }
+        @media (max-width: 1100px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 800px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                padding: 0.8rem 1rem;
+            }
+            .brand {
+                padding: 0.2rem 0.25rem 0.8rem;
+            }
+            .nav-label,
+            .sidebar-bottom {
+                display: none;
+            }
+            .nav-links {
+                display: flex;
+                overflow-x: auto;
+                gap: 0.35rem;
+            }
+            .nav-links a {
+                flex: 0 0 auto;
+                min-height: 2.35rem;
+                padding: 0.55rem 0.7rem;
+                font-size: 0.82rem;
+            }
+            .nav-links a.active {
+                box-shadow: inset 0 -2px #7090ff;
+            }
+            .main-content {
+                padding-top: 1.4rem;
+            }
+        }
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.7rem;
+            }
+            .stat-card {
+                padding: 1rem;
+            }
+            .stat-tag {
+                display: none;
+            }
+            .welcome {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 1.2rem;
+            }
+            .split-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .topbar-date {
+                font-size: 0.75rem;
+            }
+            th,
+            td {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        {% include "accounts/_admin_sidebar.html" %}
+
+        <main class="main-content">
+            {% include "accounts/_admin_messages.html" %}
+            <header class="topbar">
+                <div class="breadcrumb">Workspace / <strong>Overview</strong></div>
+                <div class="topbar-date">{% now "D, M j, Y" %}</div>
+            </header>
+
+            <section class="welcome" aria-labelledby="dashboard-heading">
+                <div class="welcome-copy">
+                    <p class="welcome-kicker">Administrator workspace</p>
+                    <h1 id="dashboard-heading">Welcome, {{ profile.name|default:request.user.get_username }}</h1>
+                    <p>Here is what is happening across your learning platform today.</p>
+                </div>
+                <a class="welcome-action" href="{% url 'accounts:admin_add' section='courses' %}">Add a course</a>
+            </section>
+
+            <section class="stats-grid" aria-label="Platform statistics">
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Total users</p>
+                        <span class="stat-tag">Accounts</span>
+                    </div>
+                    <strong class="stat-value">{{ admin_stats.users }}</strong>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Students</p>
+                        <span class="stat-tag">Learners</span>
+                    </div>
+                    <strong class="stat-value">{{ admin_stats.students }}</strong>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Instructors</p>
+                        <span class="stat-tag">Teaching team</span>
+                    </div>
+                    <strong class="stat-value">{{ admin_stats.instructors }}</strong>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Courses</p>
+                        <span class="stat-tag">Catalog</span>
+                    </div>
+                    <strong class="stat-value">{{ admin_stats.courses }}</strong>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Enrollments</p>
+                        <span class="stat-tag">Learning activity</span>
+                    </div>
+                    <strong class="stat-value">{{ admin_stats.enrollments }}</strong>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Orders</p>
+                        <span class="stat-tag">{{ admin_stats.successful_orders }} successful</span>
+                    </div>
+                    <strong class="stat-value">{{ admin_stats.orders }}</strong>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <p class="stat-label">Paid revenue</p>
+                        <span class="stat-tag">Successful orders</span>
+                    </div>
+                    <strong class="stat-value">₹{{ admin_stats.revenue|floatformat:2 }}</strong>
+                </article>
+            </section>
+
+            <section class="section" aria-labelledby="orders-heading">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="orders-heading">Recent orders</h2>
+                        <p>The latest activity from your customers.</p>
+                    </div>
+                    <a class="view-all" href="{% url 'accounts:admin_section' section='orders' %}">View all orders &rarr;</a>
+                </div>
+                <div class="table-card table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Student</th>
+                                <th>Courses</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td class="primary-cell">#{{ order.pk }}</td>
+                                    <td>{{ order.student.name }}</td>
+                                    <td>
+                                        {% for course in order.courses.all %}
+                                            {{ course.title }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            —
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ order.currency }} {{ order.total_amount|floatformat:2 }}</td>
+                                    <td><span class="status {{ order.status }}">{{ order.get_status_display }}</span></td>
+                                    <td>{{ order.created_at|date:"M j, Y" }}</td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=order section="orders" %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-row" colspan="7">No orders have been placed yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="courses-heading">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="courses-heading">Recent courses</h2>
+                        <p>Latest additions to the course catalog.</p>
+                    </div>
+                    <a class="view-all" href="{% url 'accounts:admin_section' section='courses' %}">View all courses &rarr;</a>
+                </div>
+                <div class="table-card table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Instructor</th>
+                                <th>Category</th>
+                                <th>Level</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in recent_courses %}
+                                <tr>
+                                    <td class="primary-cell">{{ course.title }}</td>
+                                    <td>{{ course.instructor.name|default:"Unassigned" }}</td>
+                                    <td>{{ course.category }}</td>
+                                    <td>{{ course.get_level_display }}</td>
+                                    <td>₹{{ course.price|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="status{% if course.is_published %} published{% else %} draft{% endif %}">
+                                            {{ course.is_published|yesno:"Published,Draft" }}
+                                        </span>
+                                    </td>
+                                    <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=course section="courses" %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-row" colspan="7">No courses have been created yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="split-grid">
+                <section class="section" aria-labelledby="students-heading">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="students-heading">Recent students</h2>
+                            <p>Newly registered learners.</p>
+                        </div>
+                        <a class="view-all" href="{% url 'accounts:admin_section' section='students' %}">View all</a>
+                    </div>
+                    <div class="table-card table-scroll">
+                        <table>
+                            <thead>
+                                <tr><th>Student</th><th>Student ID</th><th>Joined</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for student in recent_students %}
+                                    <tr>
+                                        <td class="primary-cell">
+                                            {{ student.name }}
+                                            <span class="secondary-cell">{{ student.email }}</span>
+                                        </td>
+                                        <td>{{ student.student_id }}</td>
+                                        <td>{{ student.enrollment_date|date:"M j, Y" }}</td>
+                                        <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=student section="students" %}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td class="empty-row" colspan="4">No students registered yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="section" aria-labelledby="instructors-heading">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="instructors-heading">Instructors</h2>
+                            <p>Your teaching team.</p>
+                        </div>
+                        <a class="view-all" href="{% url 'accounts:admin_section' section='instructors' %}">View all</a>
+                    </div>
+                    <div class="table-card table-scroll">
+                        <table>
+                            <thead>
+                                <tr><th>Instructor</th><th>Specialization</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for instructor in recent_instructors %}
+                                    <tr>
+                                        <td class="primary-cell">
+                                            {{ instructor.name }}
+                                            <span class="secondary-cell">{{ instructor.email }}</span>
+                                        </td>
+                                        <td>{{ instructor.specialization }}</td>
+                                        <td class="actions-cell">{% include "accounts/_admin_record_actions.html" with record=instructor section="instructors" %}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td class="empty-row" colspan="3">No instructors registered yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

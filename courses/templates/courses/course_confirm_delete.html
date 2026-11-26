@@ -4,10 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Delete Course | CourseSphere</title>
+    <style>
+        .messages { margin-bottom: 1rem; }
+        .message { padding: 0.8rem 1rem; border-radius: 0.4rem; background: #fee2e2; color: #991b1b; }
+        .message.success { background: #eaf7ef; color: #11643b; }
+    </style>
 </head>
 <body>
     <main>
         <h1>Delete Course</h1>
+        {% if messages %}
+        <div class="messages" role="status" aria-live="polite">
+            {% for message in messages %}
+            <p class="message {{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
         <p>Are you sure you want to delete “{{ course.title }}”?</p>
         <form method="post">
             {% csrf_token %}
